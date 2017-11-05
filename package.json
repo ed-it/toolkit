@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "color-temperature": "^0.2.7",
     "dotenv": "^4.0.0",
     "huejay": "^1.7.1",
     "interpolate-rgb": "0.0.2",
