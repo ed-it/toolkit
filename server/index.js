@@ -85,6 +85,7 @@ const createLogStream = async(logFile) => {
         } catch (e) {
             console.error(e);
         }
+        return;
     });
     logStream.on('error', error => {
         console.log('ERROR: ', error);
