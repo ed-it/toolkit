@@ -30,25 +30,22 @@ const ct = require('color-temperature');
 const createClient = require('../lib/create-client');
 const rgbToXy = require('../lib/rgb-to-xy');
 
-const client = createClient({ host: process.env.HUE_HUB_IP, username: process.env.HUE_HUB_USERNAME });
+const hubClient = createClient({ host: process.env.HUE_HUB_IP, username: process.env.HUE_HUB_USERNAME });
 
 const init = async (starClass, brightness=127, saturation = 127) => {
     const starData = STAR_TYPES[starClass];
     if (!starData) {
         throw new Error(`Unknown star type ${starClass}`);
     }
-    try {
-        const light = await client.lights.getById(2);
-        const kelvin = Math.floor(Math.random() * (starData.kelvinRange[1] - starData.kelvinRange[0] + 1) + starData.kelvinRange[0]);
-        const colour = ct.colorTemperature2rgb(kelvin);
-
+    const lights = await hubClient.lights.getAll();
+    const kelvin = Math.floor(Math.random() * (starData.kelvinRange[1] - starData.kelvinRange[0] + 1) + starData.kelvinRange[0]);
+    const colour = ct.colorTemperature2rgb(kelvin);
+    lights.forEach(async light => {
         light.brightness = starData.luminocity[0] || brightness;
         light.xy = rgbToXy(colour.red, colour.green, colour.blue);
         light.saturation = starData.luminocity[1] || saturation;
-        await client.lights.save(light);
-    } catch (e) {
-        throw e;
-    }
+        await hubClient.lights.save(light);
+    });
 };
 
 // // const loopColours = () => {
