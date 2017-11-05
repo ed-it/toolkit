@@ -12,6 +12,7 @@
     "dotenv": "^4.0.0",
     "huejay": "^1.7.1",
     "interpolate-rgb": "0.0.2",
+    "leapjs": "^0.6.4",
     "minimist": "^1.2.0"
   }
 }
