@@ -11,14 +11,14 @@ const register = shared => ({
             light.saturation = 254;
 
             if (index % 2 === 0) {
-                light.xy = shared.h.rgbToXy(254, 0, 0);
+                light.xy = shared.h.rgbToXy(shared.h.colours.RED);
             } else {
-                light.xy = shared.h.rgbToXy(254, 254, 0);
+                light.xy = shared.h.rgbToXy(shared.h.colours.YELLOW);
             }
             
             await shared.hub.lights.save(light);
             await shared.h.sleep(5000);
-            await shared.h.resetToStarColor();
+            await shared.h.setLightToCurrentStar();
         });
     }
 });

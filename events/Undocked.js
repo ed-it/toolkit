@@ -9,10 +9,10 @@ const register = shared => ({
             light.effect = 'none';
             light.brightness = 254;
             light.saturation = 254;
-            light.xy = shared.h.rgbToXy(254, 254, 0);
+            light.xy = shared.h.rgbToXy(shared.h.colours.YELLOW);
             await shared.hub.lights.save(light);
             await shared.h.sleep(5000);
-            await shared.h.resetToStarColor();
+            await shared.h.setLightToCurrentStar();
         });
     }
 });

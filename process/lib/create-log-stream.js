@@ -14,6 +14,7 @@ const createLogStream = async (shared, logFile) => {
                 if (process.env.DEBUG) console.log(`No event for ${result.event}`);
                 return;
             }
+            if (process.env.DEBUG) console.log(`Triggering ${result.event}`)
             await event(result);
         } catch (e) {
             console.error(e);

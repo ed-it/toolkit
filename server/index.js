@@ -54,8 +54,9 @@ const init = async shared => {
                 const eventPlugin = shared.events[event];
                 if (eventPlugin) {
                     await eventPlugin(req.payload);
+                    return 'OK';
                 }
-                return 'OK';
+                return `No plugin for ${event}`;
             } catch (e) {
                 throw e;
             }

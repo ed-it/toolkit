@@ -14,13 +14,13 @@ const register = shared => ({
             light.saturation = 254;
 
             if (ShieldsUp) {
-                light.xy = shared.h.rgbToXy(0, 0, 254);
+                light.xy = shared.h.rgbToXy(shared.h.colours.BLUE);
             } else {
-                light.xy = shared.h.rgbToXy(254, 0, 0);
+                light.xy = shared.h.rgbToXy(shared.h.colours.RED);
             }
             await shared.hub.lights.save(light);
             await shared.h.sleep(2000);
-            await shared.h.resetToStarColor();
+            await shared.h.setLightToCurrentStar();
         });
     }
 });
