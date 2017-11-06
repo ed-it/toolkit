@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 require('dotenv').config();
 
 const getCurrentLogFile = require('./lib/get-current-log-file');

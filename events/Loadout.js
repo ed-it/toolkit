@@ -1,12 +1,12 @@
 const rgbToXy = require('../lib/rgb-to-xy');
 
 const colourSchemes = {
-    'Core Dynamics': { red: 254, green: 0, blue: 254 },
-    'Faulcon DeLacy': { red: 0, green: 254, blue: 0 },
-    'Empire Gutamaya': { red: 0, green: 0, blue: 254 },
-    'Lakon Spaceways': { red: 0, green: 254, blue: 254 },
-    'Zorgon Peterson': { red: 254, green: 0, blue: 0 },
-    'Saud Kruger': { red: 212, green: 175, blue: 55 }
+    'Core Dynamics': { colour: { red: 254, green: 0, blue: 254 } },
+    'Faulcon DeLacy': { colour: { red: 0, green: 254, blue: 0 } },
+    'Empire Gutamaya': { colour: { red: 0, green: 0, blue: 254 } },
+    'Lakon Spaceways': { colour: { red: 0, green: 254, blue: 254 } },
+    'Zorgon Peterson': { colour: { red: 254, green: 0, blue: 0 } },
+    'Saud Kruger': { colour: { red: 212, green: 175, blue: 55 } }
 };
 
 const shipModels = {
@@ -30,19 +30,11 @@ const register = shared => ({
         });
         const scheme = colourSchemes[result];
         if (!scheme) {
-            console.log(`Unable to find scheme for ${Ship}::${result}`)
+            console.log(`Unable to find scheme for ${Ship}::${result}`);
         }
 
-        const lights = await shared.hub.lights.getAll();
-        lights.forEach(async light => {
-            light.on = true;
-            light.alert = 'none';
-            light.effect = 'none';
-            light.brightness = 240;
-            light.xy = rgbToXy(scheme.red, scheme.green, scheme.blue);
-            light.saturation = 254;
-            await shared.hub.lights.save(light);
-        });
+        shared.setGlobal('currentShip', scheme);
+        await shared.h.setLightsToCurrentShip();
     }
 });
 

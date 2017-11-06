@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 require('dotenv').config();
 
 const args = require('minimist')(process.argv.slice(2));
