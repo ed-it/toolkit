@@ -1,15 +1,38 @@
 require('dotenv').config();
 
-if (!process.env.ED_LOG_DIR) {
-    return console.log(`You need to set the ED_LOG_DIR environment variable`);
-}
+process.on('unhandledRejection', err => {
+    /*eslint-disable */
+    console.log(err.stack);
+    process.exit(1);
+    /*eslint-enable */
+});
+
+process.on('uncaughtException', error => {
+    /*eslint-disable */
+    console.log(error.stack); // to see your exception details in the console
+    process.exit(1);
+    /*eslint-enable */
+});
+
+const createSharedState = require('./lib/create-shared-state');
+const loadEvents = require('./lib/load-events');
 
 const args = require('minimist')(process.argv.slice(2));
-console.log(args)
+const config = require('./config');
+
+const SettingsServer = require('./server');
 const logProcess = require('./process');
 
-const init = async logDir => {
-    await logProcess(logDir);
+const init = async () => {
+    try {
+        const shared = await createSharedState({ config, args, root: __dirname });
+        shared.events = await loadEvents({ shared });
+
+        const settingsServer = await SettingsServer(shared);
+        await logProcess(shared, settingsServer);
+    } catch (e) {
+        throw e;
+    }
 };
 
-init(process.env.ED_LOG_DIR);
+init();

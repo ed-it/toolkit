@@ -1,5 +1,6 @@
 const glob = require('glob-promise');
 const Opened = require('@ronomon/opened');
+const Path = require('path');
 
 const getCurrentLogFile = path => {
     return new Promise(async (resolve, reject) => {

@@ -26,10 +26,11 @@ const shipModels = {
     'Zorgon Peterson': ['Adder', 'Fer-de-Lance', 'Hauler']
 };
 
-const register = ({ edHub }) => ({
+const register = (shared) => ({
     event: 'Loadout',
-    set: async event => {
+    command: async event => {
         const { Ship } = event;
+        console.log(Ship);
 
         const result = Object.keys(shipModels).find(maker => {
             return shipModels[maker].find(ship => {
@@ -38,12 +39,15 @@ const register = ({ edHub }) => ({
         });
         const scheme = colourSchemes[result];
 
-        const lights = await edHub.client.lights.getAll();
+        const lights = await shared.hub.lights.getAll();
         lights.forEach(async light => {
+            light.on = true;
+            light.alert = 'none';
+            light.effect = 'none';
             light.brightness = 240;
             light.xy = rgbToXy(scheme.red, scheme.green, scheme.blue);
             light.saturation = 254;
-            await edHub.client.lights.save(light);
+            await shared.hub.lights.save(light);
         });
     }
 });

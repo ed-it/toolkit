@@ -14,13 +14,17 @@
     "dotenv": "^4.0.0",
     "glob": "^7.1.2",
     "glob-promise": "^3.3.0",
+    "handlebars": "^4.0.11",
     "hapi": "^17.0.1",
     "huejay": "^1.7.1",
+    "immutable-data-store": "0.0.2",
+    "inert": "^5.0.1",
     "interpolate-rgb": "0.0.2",
     "leapjs": "^0.6.4",
     "minimist": "^1.2.0",
     "node-watch": "^0.5.5",
-    "tail": "^1.2.3"
+    "tail": "^1.2.3",
+    "vision": "^5.1.0"
   },
   "devDependencies": {
     "chai": "^4.1.2",
