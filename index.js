@@ -1,19 +1,15 @@
-const huejay = require('huejay');
+require('dotenv').config();
 
-const BRIDGE_IP = '192.168.0.109';
-
-const init = async() => {
-  const clients = {
-
-  }
-  try {
-    const bridges = await huejay.discover();
-    for (let bridge of bridges) {
-      console.log(`Id: ${bridge.id}, IP: ${bridge.ip}`);
-    }
-  } catch (e) {
-    throw e;
-  }
+if (!process.env.ED_LOG_DIR) {
+    return console.log(`You need to set the ED_LOG_DIR environment variable`);
 }
 
-init();
+const args = require('minimist')(process.argv.slice(2));
+console.log(args)
+const logProcess = require('./process');
+
+const init = async logDir => {
+    await logProcess(logDir);
+};
+
+init(process.env.ED_LOG_DIR);
