@@ -3,41 +3,35 @@ const rgbToXy = require('../lib/rgb-to-xy');
 const colourSchemes = {
     'Core Dynamics': { red: 254, green: 0, blue: 254 },
     'Faulcon DeLacy': { red: 0, green: 254, blue: 0 },
-    Gutamaya: { red: 0, green: 0, blue: 254 },
+    'Empire Gutamaya': { red: 0, green: 0, blue: 254 },
     'Lakon Spaceways': { red: 0, green: 254, blue: 254 },
-    'Zorgon Peterson': { red: 254, green: 0, blue: 0 }
+    'Zorgon Peterson': { red: 254, green: 0, blue: 0 },
+    'Saud Kruger': { red: 212, green: 175, blue: 55 }
 };
 
 const shipModels = {
-    'Core Dynamics': ['Eagle', 'F63 Condor', 'Federal Assault Ship', 'Federal Corvette', 'Federal Dropship', 'Federal Gunship', 'Vulture'],
-    'Faulcon DeLacy': [{ type: 'Anaconda', label: 'Anaconda' }, 'Cobra MkIII', 'Cobra MkIV', 'Python', 'Sidewinder MkI', 'Viper MkIII', 'Viper MkIV'],
-    Gutamaya: ['GU-97', 'Imperial Clipper', { type: 'Empire_Courier', label: 'Imperial Courier' }, 'Imperial Cutter', 'Imperial Eagle'],
-    'Lakon Spaceways': [
-        'Asp Explorer',
-        'Asp Scout',
-        'Diamondback Explorer',
-        'Diamondback Scout',
-        'Keelback',
-        'Taipan Fighter',
-        'Type-6 Transporter',
-        'Type-7 Transporter',
-        'Type-9 Heavy'
-    ],
-    'Zorgon Peterson': ['Adder', 'Fer-de-Lance', 'Hauler']
+    'Core Dynamics': ['Eagle', 'Federation_Dropship_MkII', 'Federation_Corvette', 'Federation_Dropship', 'Federation_Gunship', 'Vulture'],
+    'Faulcon DeLacy': ['Anaconda', 'SideWinder', 'CobraMkIII', 'CobraMkIV', 'Python', 'Viper', 'Viper_MkIV'],
+    'Empire Gutamaya': ['Empire_Trader', 'Empire_Courier', 'Empire_Eagle', 'Cutter'],
+    'Lakon Spaceways': ['Asp', 'Asp_Scout', 'DiamondBackXL', 'DiamondBack', 'Independant_Trader', 'Type6', 'Type7', 'Type9'],
+    'Zorgon Peterson': ['Adder', 'FerDeLance', 'Hauler'],
+    'Saud Kruger': ['Dolphin', 'Orca', 'BelugaLiner']
 };
 
-const register = (shared) => ({
+const register = shared => ({
     event: 'Loadout',
     command: async event => {
         const { Ship } = event;
-        console.log(Ship);
 
         const result = Object.keys(shipModels).find(maker => {
             return shipModels[maker].find(ship => {
-                return Ship === ship.type;
+                return Ship.toLowerCase() === ship.toLowerCase();
             });
         });
         const scheme = colourSchemes[result];
+        if (!scheme) {
+            console.log(`Unable to find scheme for ${Ship}::${result}`)
+        }
 
         const lights = await shared.hub.lights.getAll();
         lights.forEach(async light => {

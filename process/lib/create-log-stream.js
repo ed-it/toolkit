@@ -1,6 +1,7 @@
 const Tail = require('tail').Tail;
 
 const createLogStream = async (shared, logFile) => {
+    console.log('Creating Stream');
     const logStream = new Tail(logFile, { useWatchFile: true });
     logStream.on('line', async chunk => {
         try {

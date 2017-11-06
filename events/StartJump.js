@@ -13,7 +13,7 @@ const STAR_TYPES = {
     TTS: { kelvinRange: [2500, 3500], luminocity: [200, 200] },
     AeBe: { kelvinRange: [7500, 1100], luminocity: [150, 150] },
     // // Neutron Star
-    N: { red: 155, green: 176, blue: 255, brightness: 254, saturation: 254, cycle: true }
+    N: { kelvinRange: [25000, 40000], luminocity: [254, 254], pulse: true }
     // H: { red: 1, green: 1, blue: 1, brightness: 0, saturation: 0 },
     // SupermassiveBlackHole: { red: 255, green: 255, blue: 255, brightness: 20, saturation: 5 },
     // M_RedSuperGiant: { red: 255, green: 204, blue: 111, brightness: 254, saturation: 254 }
