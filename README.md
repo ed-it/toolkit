@@ -44,3 +44,5 @@ Next go to [http://localhost:12342/settings](http://localhost:12342/settings) an
 > *You should set this up before you start the game*
 
 You also need to enter the location of you Elite: Dangerous logs.  On Windows this is usually `C:\Users\[username]\Documents\Save Games\Frontier Developments\Elite Dangerous`.
+
+Thanks to millstonebarn for the name suggestion.
