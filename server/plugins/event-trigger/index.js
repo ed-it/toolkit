@@ -7,7 +7,7 @@ module.exports = {
 
             if (!event) {
                 if (server.app.debug) console.log(`No event for ${result.event}`);
-                return;
+                return `No event for ${result.event}`;
             }
             if (server.app.debug) console.log(`Triggering ${result.event}`);
             return await event(params);
@@ -18,8 +18,7 @@ module.exports = {
             path: '/api/event',
             handler: async (request, h) => {
                 try {
-                    await server.methods.triggerEvent(request.payload);
-                    return 'OK';
+                    return await server.methods.triggerEvent(request.payload);
                 } catch (e) {
                     throw e;
                 }

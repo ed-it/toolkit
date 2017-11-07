@@ -1,0 +1,28 @@
+<h2>Hubs</h2>
+<form method="post" action="/hubs/manage">
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Enabled?</th>
+                <th>Hub ID</th>
+                <th>Hub IP</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each hubs as |hub|}}
+            <tr>
+                <td>{{math @index "+" 1}}</td>
+                <td>
+                    <input type="checkbox" id="hub-{{hub.id}}" name="selected" value="{{hub.id}}" />
+                </td>
+                <td>{{hub.id}}</td>
+                <td>{{hub.ip}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+
+    <input type="submit" value="Submit" />
+
+</form>

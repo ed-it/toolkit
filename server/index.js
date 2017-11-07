@@ -9,62 +9,25 @@ const Path = require('path');
 const readFileAsync = promisify(fs.readFile);
 const writeFileAsync = promisify(fs.writeFile);
 
+const settings = require('./plugins/settings');
 const logReader = require('./plugins/log-reader');
 const eventTrigger = require('./plugins/event-trigger');
+const hubManager = require('./plugins/hub-manager');
+const lightsManager = require('./plugins/lights-manager');
 
 const init = async shared => {
     const server = new Hapi.Server({ port: shared.config.port || 12342 });
 
     Object.keys(shared).forEach(key => (server.app[key] = shared[key]));
 
-    await server.register([Inert, Vision, logReader, eventTrigger]);
+    await server.register([Inert, Vision, settings, logReader, eventTrigger, hubManager, lightsManager]);
 
     server.views({
         engines: { html: require('handlebars') },
-        path: __dirname + '/views',
-        layout: true
-    });
-
-    server.route({
-        method: 'GET',
-        path: '/settings',
-        handler: async (req, h) => {
-            try {
-                return h.view(`settings/details`, req.server.app.config);
-            } catch (e) {
-                console.log(e);
-                throw e;
-            }
-        }
-    });
-
-    server.route({
-        method: 'GET',
-        path: '/settings/update',
-        handler: async (req, h) => {
-            try {
-                return h.view(`settings/form`, req.server.app.config);
-            } catch (e) {
-                console.log(e);
-                throw e;
-            }
-        }
-    });
-
-    server.route({
-        method: 'POST',
-        path: '/settings/update',
-        handler: async (req, h) => {
-            try {
-                const { host, username, directory } = req.payload;
-                shared.setConfig({ hub: { host, username }, log: { directory }, debug: req.server.app.config.debug, port: req.server.app.config.port });
-                await writeFileAsync(Path.resolve('./config.json'), JSON.stringify(req.server.app.config, null, 4));
-                return h.redirect('/settings');
-            } catch (e) {
-                console.log(e);
-                throw e;
-            }
-        }
+        path: `${__dirname}/plugins`,
+        layoutPath: `${__dirname}/views`,
+        layout: true,
+        helpersPath: `${__dirname}/views/helpers`
     });
 
     server.route({

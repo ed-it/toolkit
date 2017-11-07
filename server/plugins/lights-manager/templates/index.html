@@ -1,0 +1,10 @@
+<h2>Lights</h2>
+
+{{#each hubLights as |lights hub|}}
+    <div class="hub-lights">
+        <h3>Hub: {{hub}}</h3>
+        {{#each lights as |light|}}
+            {[json light]}
+        {{/each}}
+    </div>
+{{/each}}

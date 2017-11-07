@@ -4,6 +4,7 @@ const register = shared => ({
     event: 'FSDJump',
     command: async event => {
         await shared.h.setLightToCurrentStar();
+        return 'OK'
     }
 });
 

@@ -8,7 +8,8 @@ module.exports = {
     register: async (server, options) => {
         const init = async () => {
             try {
-                const logPath = Path.resolve(server.app.config.log.directory);
+                const { directory } = server.app.config.log;
+                const logPath = Path.resolve(directory);
                 if (process.env.DEBUG) console.log('logPath', logPath);
                 await logFileCollector(server.app, logPath);
             } catch (e) {

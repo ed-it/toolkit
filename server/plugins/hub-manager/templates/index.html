@@ -1,0 +1,20 @@
+<h2>Hubs</h2>
+<table>
+    <caption><a href="/hubs/manage">Manage Hubs</a></caption>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Hub ID</th>
+            <th>Hub IP</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each hubs as |hub|}}
+            <tr>
+                <td>{{math @index "+" 1}}</td>
+                <td>{{hub.id}}</td>
+                <td>{{hub.ip}}</td>
+            </tr>
+        {{/each}}
+    </tbody>
+</table>
