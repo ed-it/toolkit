@@ -11,10 +11,26 @@ const register = shared => ({
         };
 
         const shipModels = {
-            'Core Dynamics': ['Eagle', 'Federation_Dropship_MkII', 'Federation_Corvette', 'Federation_Dropship', 'Federation_Gunship', 'Vulture'],
+            'Core Dynamics': [
+                'Eagle',
+                'Federation_Dropship_MkII',
+                'Federation_Corvette',
+                'Federation_Dropship',
+                'Federation_Gunship',
+                'Vulture'
+            ],
             'Faulcon DeLacy': ['Anaconda', 'SideWinder', 'CobraMkIII', 'CobraMkIV', 'Python', 'Viper', 'Viper_MkIV'],
             'Empire Gutamaya': ['Empire_Trader', 'Empire_Courier', 'Empire_Eagle', 'Cutter'],
-            'Lakon Spaceways': ['Asp', 'Asp_Scout', 'DiamondBackXL', 'DiamondBack', 'Independant_Trader', 'Type6', 'Type7', 'Type9'],
+            'Lakon Spaceways': [
+                'Asp',
+                'Asp_Scout',
+                'DiamondBackXL',
+                'DiamondBack',
+                'Independant_Trader',
+                'Type6',
+                'Type7',
+                'Type9'
+            ],
             'Zorgon Peterson': ['Adder', 'FerDeLance', 'Hauler'],
             'Saud Kruger': ['Dolphin', 'Orca', 'BelugaLiner']
         };
@@ -29,10 +45,11 @@ const register = shared => ({
         const scheme = colourSchemes[result];
         if (!scheme) {
             console.log(`Unable to find scheme for ${Ship}::${result}`);
+            throw new Error(`Unable to find scheme for ${Ship}::${result}`);
         }
 
         shared.setGlobal('currentShip', scheme);
-        await shared.h.setLightsToCurrentShip();
+        return await shared.h.setLightsToCurrentShip();
     }
 });
 

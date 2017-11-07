@@ -1,0 +1,26 @@
+<h2>Hubs</h2>
+<table class="pure-table">
+    <caption><a href="/hubs/manage">Manage Hubs</a> | <a href="/hubs/discover">Discover Hubs</a></caption>
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>Hub ID</th>
+            <th>Hub IP</th>
+            <th>Hub User</th>
+            <th>Current Hub</th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each hubs as |hub|}}
+            <tr>
+                <td>{{math @index "+" 1}}</td>
+                <td>{{hub.name}}</td>
+                <td>{{hub.id}}</td>
+                <td>{{hub.ip}}</td>
+                <td>{{{or hub.username '<a href="/hubs/users">Get Username</a>'}}}</td>
+                <td>{{bool hub.current}}</td>
+            </tr>
+        {{/each}}
+    </tbody>
+</table>

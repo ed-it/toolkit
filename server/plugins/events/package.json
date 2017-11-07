@@ -1,0 +1,8 @@
+{
+    "name": "@ed-it/server-plugin-events",
+    "version": "0.1.0",
+    "description": "A plugin for handling events",
+    "dependencies": {
+        "bounce": "^1.2.0"
+    }
+}

@@ -1,0 +1,34 @@
+<h2>Hubs</h2>
+<form method="post" action="/hubs/manage" class="pure-form">
+    <table class="pure-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Current Hub?</th>
+                <th>Hub Username (<a href="/hubs/users">Get Username</a>)</th>
+                <th>Hub Name</th>
+                <th>Hub ID</th>
+                <th>Hub IP</th>
+            </tr>
+        </thead>
+        <tbody>
+            {{#each hubs as |hub|}}
+            <tr>
+                <td>{{math @index "+" 1}}</td>
+                <td>
+                    <input type="checkbox" id="hub-{{hub.id}}" name="selected" value="{{hub.id}}" {{checked hub.current true}}/>
+                </td>
+                <td>
+                    <input type="text" name="username" id="name-{{hub.id}}" placeholder="Enter username..." value="{{hub.username}}" />
+                </td>
+                <td><input type="text" name="new_name" id="name-{{hub.id}}" placeholder="Enter name..." value="{{hub.name}}" /></td>
+                <td>{{hub.id}}</td>
+                <td>{{hub.ip}}</td>
+            </tr>
+            {{/each}}
+        </tbody>
+    </table>
+
+    <input type="submit" value="Submit" />
+
+</form>

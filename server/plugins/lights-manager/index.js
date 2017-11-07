@@ -10,7 +10,7 @@ module.exports = {
                     a: [],
                     b: []
                 };
-                return h.view('lights-manager/templates/index.html', { hubLights });
+                return h.view('lights-manager/templates/index', { hubLights });
             }
         });
     }

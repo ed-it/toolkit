@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Elite Dangerous Hue Bridge</title>
+    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w"
+        crossorigin="anonymous">
+    <link rel="stylesheet" href="/static/style.css" />
+</head>
+
+<body>
+    <div id="layout">
+        <!-- Menu toggle -->
+        <a href="#menu" id="menuLink" class="menu-link">
+            <!-- Hamburger icon -->
+            <span></span>
+        </a>
+
+        <div id="menu">
+            <div class="pure-menu">
+                <a class="pure-menu-heading" href="#">Configuration</a>
+
+                <ul class="pure-menu-list">
+                    <li class="pure-menu-item">
+                        <a href="/" class="pure-menu-link">Home</a>
+                    </li>
+                    <li class="pure-menu-item">
+                        <a href="/settings" class="pure-menu-link">Settings</a>
+                    </li>
+                    <li class="pure-menu-item">
+                        <a href="/hubs" class="pure-menu-link">Hubs</a>
+                    </li>
+
+                    <li class="pure-menu-item" class="menu-item-divided pure-menu-selected">
+                        <a href="/lights" class="pure-menu-link">Lights</a>
+                    </li>
+
+                    <li class="pure-menu-item">
+                        <a href="/about" class="pure-menu-link">About</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div class="header">
+                <h1>The Elite: Dangerous Immersion Toolkit</h1>
+                <h2>Configuration Application</h2>
+            </div>
+
+            <div class="content">
+                {{{content}}}
+            </div>
+
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,24 @@
+<h3>Users</h3>
+<p>
+    <strong>Please note that to use this feature you must press the link button on your Philips Hue hub.</strong>
+</p>
+
+<form method="post" action="/hubs/users" class="pure-form pure-form-aligned">
+    <fieldset>
+        <legend>Create User</legend>
+        <div class="pure-control-group">
+            <label for="host">Hue Bridge</label>
+            <select name="host" id="host">
+                {{#each hubs as |hub|}}
+                    <option value="{{hub.ip}}">{{or hub.name hub.id}}</option>
+                {{/each}}
+            </select>
+        </div>
+        <div class="pure-control-group">
+            <label for="set_as_current_user">Set as current user</label>
+            <input type="checkbox" name="set_as_current_user" id="set_as_current_user" value="yes" />
+        </div>
+    </fieldset>
+
+    <button type="submit" class="pure-button pure-button-primary">Submit</button>
+</form>

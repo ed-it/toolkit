@@ -1,11 +1,11 @@
-<form method="post" action="/settings/update">
+<form method="post" action="/settings/update" class="pure-form pure-form-aligned">
     <fieldset>
         <legend>Hue Bridge Settings</legend>
-        <div>
+        <div class="pure-control-group">
             <label for="hue_host">Hue Bridge Host IP</label>
             <input type="text" name="host" id="hue_host" value="{{hub.host}}" />
         </div>
-        <div>
+        <div class="pure-control-group">
             <label for="hue_username">Hue Bridge Username</label>
             <input type="text" name="username" id="hue_username" value="{{hub.username}}" />
         </div>
@@ -13,7 +13,7 @@
 
     <fieldset>
         <legend>Elite Dangerous</legend>
-        <div>
+        <div class="pure-control-group">
             <label for="save_log_dir">Log Directory</label>
             <input type="text" name="directory" id="save_log_dir" value="{{log.directory}}" />
         </div>
@@ -21,11 +21,11 @@
 
     <fieldset>
         <legend>Server Config</legend>
-        <div>
+        <div class="pure-control-group">
             <label for="server_port">Server Port</label>
             <input type="text" name="port" id="server_port" value="{{port}}" />
         </div>
-        <div>
+        <div class="pure-control-group">
             <label for="server_debug">Server Debug Mode?</label>
             <select name="debug" id="server_debug">
                 <option value="false" {{selected "false" debug}}>False</option>
@@ -34,5 +34,5 @@
         </div>
     </fieldset>
 
-    <input type="submit" value="Submit" />
+    <button type="submit" class="pure-button pure-button-primary">Submit</button>
 </form>

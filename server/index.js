@@ -11,39 +11,50 @@ const writeFileAsync = promisify(fs.writeFile);
 
 const settings = require('./plugins/settings');
 const logReader = require('./plugins/log-reader');
-const eventTrigger = require('./plugins/event-trigger');
+const eventTrigger = require('./plugins/events');
 const hubManager = require('./plugins/hub-manager');
 const lightsManager = require('./plugins/lights-manager');
+const staticEndpoints = require('./plugins/static-endpoints');
 
 const init = async shared => {
-    const server = new Hapi.Server({ port: shared.config.port || 12342 });
+    const server = new Hapi.Server({
+        port: shared.config.port || 12342,
+        routes: {
+            files: {
+                relativeTo: `${__dirname}/static`
+            }
+        }
+    });
 
     Object.keys(shared).forEach(key => (server.app[key] = shared[key]));
 
-    await server.register([Inert, Vision, settings, logReader, eventTrigger, hubManager, lightsManager]);
+    await server.register([
+        Inert,
+        Vision,
+        settings,
+        logReader,
+        eventTrigger,
+        hubManager,
+        lightsManager,
+        staticEndpoints
+    ]);
 
     server.views({
-        engines: { html: require('handlebars') },
+        engines: { hbs: require('handlebars') },
         path: `${__dirname}/plugins`,
         layoutPath: `${__dirname}/views`,
         layout: true,
-        helpersPath: `${__dirname}/views/helpers`
+        helpersPath: `${__dirname}/views/helpers`,
+        isCached: !shared.config.debug
     });
-
     server.route({
-        method: 'POST',
-        path: '/test/{event}',
-        handler: async (req, h) => {
-            try {
-                const { event } = req.params;
-                const eventPlugin = req.server.app.events[event];
-                if (eventPlugin) {
-                    await eventPlugin(req.payload);
-                    return 'OK';
-                }
-                return `No plugin for ${event}`;
-            } catch (e) {
-                throw e;
+        method: 'GET',
+        path: '/static/{param*}',
+        handler: {
+            directory: {
+                path: '.',
+                redirectToSlash: true,
+                index: true
             }
         }
     });
