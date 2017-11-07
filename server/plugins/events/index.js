@@ -1,5 +1,6 @@
 const Bounce = require('bounce');
 const pkg = require('./package.json');
+const allEvents = require('./all-events');
 
 module.exports = {
     name: pkg.name,
@@ -24,12 +25,23 @@ module.exports = {
         });
 
         server.route({
+            method: 'GET',
+            path: '/api/event',
+            handler: async (request, h) => {
+                const { lastEventTriggered } = request.server.app;
+                return h.view('events/templates/api-event', { allEvents, lastEventTriggered });
+            }
+        });
+
+        server.route({
             method: 'POST',
             path: '/api/event',
             handler: async (request, h) => {
                 try {
-                    const result = await server.methods.triggerEvent(request.payload);
-                    return { status: 'ok', result };
+                    const { event, params } = request.payload;
+                    const result = await request.server.methods.triggerEvent({ event, params });
+                    request.server.app.lastEventTriggered = event;
+                    return h.redirect('/api/event');
                 } catch (error) {
                     request.log(['error'], error);
                     Bounce.rethrow(error, 'system');
