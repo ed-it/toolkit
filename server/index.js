@@ -9,19 +9,41 @@ const Path = require('path');
 const readFileAsync = promisify(fs.readFile);
 const writeFileAsync = promisify(fs.writeFile);
 
-const eventQueue = [];
+const logReader = require('./plugins/log-reader');
+const eventTrigger = require('./plugins/event-trigger');
 
 const init = async shared => {
     const server = new Hapi.Server({ port: shared.config.port || 12342 });
 
+    Object.keys(shared).forEach(key => (server.app[key] = shared[key]));
+
+    await server.register([Inert, Vision, logReader, eventTrigger]);
+
+    server.views({
+        engines: { html: require('handlebars') },
+        path: __dirname + '/views',
+        layout: true
+    });
+
     server.route({
         method: 'GET',
-        path: '/',
+        path: '/settings',
         handler: async (req, h) => {
             try {
-                const source = await readFileAsync(`${__dirname}/views/settings.hbs`);
-                const template = handlebars.compile(`${source}`);
-                return template(shared.config);
+                return h.view(`settings/details`, req.server.app.config);
+            } catch (e) {
+                console.log(e);
+                throw e;
+            }
+        }
+    });
+
+    server.route({
+        method: 'GET',
+        path: '/settings/update',
+        handler: async (req, h) => {
+            try {
+                return h.view(`settings/form`, req.server.app.config);
             } catch (e) {
                 console.log(e);
                 throw e;
@@ -35,9 +57,9 @@ const init = async shared => {
         handler: async (req, h) => {
             try {
                 const { host, username, directory } = req.payload;
-                shared.setConfig({ hub: { host, username }, log: { directory }, debug: shared.config.debug, port: shared.config.port });
-                await writeFileAsync(Path.resolve('./config.json'), JSON.stringify(shared.config, null, 4));
-                return 'Config Saved <a href="/">Go Back</a>';
+                shared.setConfig({ hub: { host, username }, log: { directory }, debug: req.server.app.config.debug, port: req.server.app.config.port });
+                await writeFileAsync(Path.resolve('./config.json'), JSON.stringify(req.server.app.config, null, 4));
+                return h.redirect('/settings');
             } catch (e) {
                 console.log(e);
                 throw e;
@@ -51,7 +73,7 @@ const init = async shared => {
         handler: async (req, h) => {
             try {
                 const { event } = req.params;
-                const eventPlugin = shared.events[event];
+                const eventPlugin = req.server.app.events[event];
                 if (eventPlugin) {
                     await eventPlugin(req.payload);
                     return 'OK';

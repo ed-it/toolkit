@@ -21,15 +21,13 @@ const args = require('minimist')(process.argv.slice(2));
 const config = require('./config');
 
 const SettingsServer = require('./server');
-const logProcess = require('./process');
 
 const init = async () => {
     try {
         const shared = await createSharedState({ config, args, root: __dirname });
         shared.events = await loadEvents({ shared });
 
-        const settingsServer = await SettingsServer(shared);
-        await logProcess(shared, settingsServer);
+        await SettingsServer(shared);
     } catch (e) {
         throw e;
     }
