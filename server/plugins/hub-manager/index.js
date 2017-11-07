@@ -43,6 +43,7 @@ module.exports = {
                 try {
                     hubs = await huejay.discover();
                 } catch (error) {
+                    request.log(['error'], error);
                     Bounce.rethrow(error, 'system');
                     return h.view('shared/templates/error', { error });
                 }
@@ -69,6 +70,11 @@ module.exports = {
                 newUser.device_type = 'edit';
                 try {
                     const { username } = await server.app.hub.users.create(newUser);
+                    if (!username) {
+                        const usernameError = new Error('Hub did not generate username');
+                        request.log(['error'], usernameError);
+                        return h.view('shared/templates/error', { usernameError });
+                    }
                     const hubs = server.app.config.hubs.map(hub => {
                         if (hub.ip === host) {
                             hub.username = username;
@@ -86,6 +92,7 @@ module.exports = {
                     await server.methods.updateConfig(newConfig);
                     return h.redirect('/hubs');
                 } catch (error) {
+                    request.log(['error'], error);
                     Bounce.rethrow(error, 'system');
                     return h.view('shared/templates/error', { error });
                 }
@@ -96,20 +103,19 @@ module.exports = {
             method: 'POST',
             path: '/hubs/manage',
             handler: async (request, h) => {
-                const { selected, new_name } = request.payload;
+                const { selected, new_name, username } = request.payload;
                 const selectedHub = request.server.app.config.hubs.find(hub => hub.id === selected);
                 const { config } = request.server.app;
 
                 const hubs = (request.server.app.config.hubs || []).map(
                     ({ id, ip, name }) =>
                         id === selectedHub.id
-                            ? { id, ip, name: name || new_name, current: true }
-                            : { id, ip, name: name || new_name }
+                            ? { id, ip, name: name || new_name, current: true, username }
+                            : { id, ip, name: name || new_name, username }
                 );
-                console.log(hubs);
 
                 await server.methods.updateConfig({
-                    hub: { host: selectedHub.ip, username: config.hub.username },
+                    hub: { host: selectedHub.ip, username: username || selectedHub.username || config.hub.username },
                     hubs
                 });
 

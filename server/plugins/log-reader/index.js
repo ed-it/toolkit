@@ -2,27 +2,29 @@ const Tail = require('tail').Tail;
 const Path = require('path');
 const glob = require('glob-promise');
 const Opened = require('@ronomon/opened');
+const Bounce = require('bounce');
 
 module.exports = {
     name: 'log-reader',
     version: '1.0.0',
     register: async (server, options) => {
         server.method('createLogStream', async logFile => {
-            if (sever.app.config.debug) console.log('Creating Stream');
+            server.log(['trace'], 'Creating Stream');
             const logStream = new Tail(logFile, { useWatchFile: true });
+
             logStream.on('line', async chunk => {
                 try {
                     const result = JSON.parse(chunk);
-                    if (sever.app.config.debug) console.log('event', JSON.stringify(result, null, 0));
+                    server.log(['debug', 'event'], result);
                     const { event, ...params } = result;
                     return await server.methods.triggerEvent(event, params);
-                } catch (e) {
-                    console.error(e);
+                } catch (error) {
+                    Bounce.rethrow(error, 'system');
                 }
-                return;
             });
             logStream.on('error', error => {
-                console.log('ERROR: ', error);
+                server.log(['error', error]);
+                Bounce.rethrow(error, 'system');
             });
 
             return logStream;
@@ -38,27 +40,28 @@ module.exports = {
                         if (error) return reject(error);
                         return resolve(hashTable);
                     });
-                } catch (e) {
-                    reject(e);
+                } catch (error) {
+                    server.log(['error'], error);
+                    reject(error);
                 }
             });
         });
 
         server.method('logFileCollector', async (logDirectory, totalTries) => {
             totalTries = totalTries + 1;
-            if (!server.app.debug && totalTries >= 50) {
-                throw new Error(`Unable to get log file after 50 attempts, exiting`);
-            }
-            const result = await server.methods.getCurrentLogFile(logDirectory);
-            logFile = Object.keys(result).filter(file => {
-                return result[file] === true;
-            })[0];
-            if (!logFile) {
-                return await new Promise(resolve =>
-                    setTimeout(server.methods.logFileCollector, 5000, logDirectory, totalTries)
-                );
-            } else {
-                return await server.methods.createLogStream(shared, logFile);
+            try {
+                const result = await server.methods.getCurrentLogFile(logDirectory);
+                logFile = Object.keys(result).filter(file => {
+                    return result[file] === true;
+                })[0];
+                if (!logFile) {
+                    return await new Promise(resolve => setTimeout(server.methods.logFileCollector, 5000, logDirectory, totalTries));
+                }
+                server.app.currentLogFile = logFile;
+                return await server.methods.createLogStream(logFile);
+            } catch (error) {
+                server.log(['error'], error);
+                Bounce.rethrow(error, 'system');
             }
         });
 
@@ -66,11 +69,11 @@ module.exports = {
             try {
                 const { directory } = server.app.config.log;
                 const logPath = Path.resolve(directory);
-                if (process.env.DEBUG) console.log('logPath', logPath);
+                server.log(['debug'], logPath);
                 await server.methods.logFileCollector(logPath);
-            } catch (e) {
-                console.log(e);
-                throw e;
+            } catch (error) {
+                server.log(['error'], error);
+                Bounce.rethrow(error, 'system');
             }
         };
 

@@ -1,6 +1,7 @@
 const { promisify } = require('util');
 const fs = require('fs');
 const Path = require('path');
+const Bounce = require('bounce');
 
 const readFileAsync = promisify(fs.readFile);
 const writeFileAsync = promisify(fs.writeFile);
@@ -29,9 +30,10 @@ module.exports = {
                 try {
                     const { config } = request.server.app;
                     return h.view(`settings/views/details`, config);
-                } catch (e) {
-                    console.log(e);
-                    throw e;
+                } catch (error) {
+                    request.log(['error'], error);
+                    Bounce.rethrow(error, 'system');
+                    return h.view('shared/templates/error', { error });
                 }
             }
         });
@@ -44,8 +46,9 @@ module.exports = {
                 try {
                     return h.view(`settings/views/form`, config);
                 } catch (e) {
-                    console.log(e);
-                    throw e;
+                    request.log(['error'], error);
+                    Bounce.rethrow(error, 'system');
+                    return h.view('shared/templates/error', { error });
                 }
             }
         });
@@ -59,8 +62,9 @@ module.exports = {
                     await server.methods.updateConfig({ hub: { host, username }, log: { directory }, debug, port });
                     return h.redirect('/settings');
                 } catch (e) {
-                    console.log(e);
-                    throw e;
+                    request.log(['error'], error);
+                    Bounce.rethrow(error, 'system');
+                    return h.view('shared/templates/error', { error });
                 }
             }
         });

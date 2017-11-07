@@ -6,14 +6,21 @@ module.exports = {
     version: pkg.version,
     register: async (server, options) => {
         server.method('triggerEvent', async ({ event, params }) => {
-            const eventFn = server.app.events[event];
+            try {
+                const eventFn = server.app.events[event];
 
-            if (!eventFn || typeof eventFn !== 'function') {
-                if (server.app.debug) console.log(`No event for ${event}`);
-                throw new Error(`No event for ${event}`);
+                if (!eventFn || typeof eventFn !== 'function') {
+                    const newError = new Error(`No event for ${event}`);
+                    server.log(['warning'], newError);
+                    Bounce.rethrow(newError, 'system');
+                    return '';
+                }
+                server.log(['debug'], `Triggering ${event}`);
+                return await eventFn(params);
+            } catch (error) {
+                server.log(['error'], error);
+                Bounce.rethrow(error, 'system');
             }
-            if (server.app.debug) console.log(`Triggering ${event}`);
-            return await eventFn(params);
         });
 
         server.route({
@@ -24,6 +31,7 @@ module.exports = {
                     const result = await server.methods.triggerEvent(request.payload);
                     return { status: 'ok', result };
                 } catch (error) {
+                    request.log(['error'], error);
                     Bounce.rethrow(error, 'system');
                     return h.view('shared/templates/error', { error });
                 }

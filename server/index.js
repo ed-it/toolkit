@@ -23,21 +23,16 @@ const init = async shared => {
             files: {
                 relativeTo: `${__dirname}/static`
             }
+        },
+        debug: {
+            log: shared.config.debug ? ['error', 'debug'] : ['error'],
+            request: shared.config.debug ? ['error', 'debug'] : ['error']
         }
     });
 
     Object.keys(shared).forEach(key => (server.app[key] = shared[key]));
 
-    await server.register([
-        Inert,
-        Vision,
-        settings,
-        logReader,
-        eventTrigger,
-        hubManager,
-        lightsManager,
-        staticEndpoints
-    ]);
+    await server.register([Inert, Vision, settings, logReader, eventTrigger, hubManager, lightsManager, staticEndpoints]);
 
     server.views({
         engines: { hbs: require('handlebars') },
