@@ -49,7 +49,7 @@ const init = async shared => {
     });
     server.route({
         method: 'GET',
-        path: '/static/{param*}',
+        path: '/{param*}',
         handler: {
             directory: {
                 path: '.',
