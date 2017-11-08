@@ -1,10 +1,10 @@
 {
   "name": "@ed-it/toolkit",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A tookit for creating emersive Elite Dangerous experiences",
   "main": "index.js",
   "bin": {
-    "edhb": "index.js"
+    "ed-it": "./index.js"
   },
   "scripts": {
     "test": "mocha --reporter list events/*.spec.js",

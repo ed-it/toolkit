@@ -1,4 +1,4 @@
-require('dotenv').config();
+#!/usr/bin/env node
 
 process.on('unhandledRejection', err => {
     /*eslint-disable */
