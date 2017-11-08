@@ -1,5 +1,4 @@
 const ct = require('color-temperature');
-const rgbToXy = require('../lib/rgb-to-xy');
 
 const STAR_TYPES = {
     O: { kelvinRange: [25000, 40000], brightness: 254, saturation: 254 },
@@ -77,29 +76,6 @@ module.exports = {
         const { kelvinRange, ...starParams } = starData;
         const kelvin = Math.floor(Math.random() * (kelvinRange[1] - kelvinRange[0] + 1) + kelvinRange[0]);
         const colour = ct.colorTemperature2rgb(kelvin);
-        return { colour, ...starParams };
+        return { ...starParams, colour };
     }
 };
-
-// const setStarColor = async (hubClient, starClass, brightness = 127, saturation = 127) => {
-//     const starData = STAR_TYPES[starClass];
-//     if (!starData) {
-//         console.log(`Unknown star type ${starClass}`);
-//     }
-//     const lights = await hubClient.lights.getAll();
-//     const kelvin = Math.floor(
-//         Math.random() * (starData.kelvinRange[1] - starData.kelvinRange[0] + 1) + starData.kelvinRange[0]
-//     );
-//     const colour = ct.colorTemperature2rgb(kelvin);
-//     lights.forEach(async light => {
-//         light.brightness = starData.luminocity[0] || brightness;
-//         light.xy = rgbToXy(colour.red, colour.green, colour.blue);
-//         light.saturation = starData.luminocity[1] || saturation;
-//         await hubClient.lights.save(light);
-//     });
-// };
-
-// module.exports = {
-//     STAR_TYPES,
-//     setStarColor
-// };

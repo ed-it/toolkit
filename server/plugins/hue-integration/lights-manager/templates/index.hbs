@@ -1,30 +1,68 @@
 <h2>Lights</h2>
 
 <style>
-    .light .colour {
-        width: 100px;
-        height: 100px;
+    .container {
+        padding: 2px 16px;
     }
-    .swatch {
+
+    .light {
+        box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+        transition: 0.3s;
+    }
+
+    .light:hover {
+        box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.2);
+    }
+
+    .light .colour {
         width: 100%;
-        height: 100%;
+    }
+
+    .colour-set {}
+
+    .swatch {
+        height: 100px;
     }
 </style>
 
-{{#each lights as |light|}}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.0/spectrum.min.css">
+
+<div class="container">
+    {{#each lights as |light|}}
     <div class="hub-lights">
         <div class="light">
-            <div class="colour" title="{{labelArray (xyToRgb light) ../labels.rgb}}">
-                <div class="swatch" style="background-color: rgb({{xyToRgb light}})"></div>
-            </div>
-            <div class="container">
-                <h4><b>{{light.name}}</b></h4>
-                <p>{{light.attributes.attributes.manufacturername}} {{light.type}}</p>
-                <p>State: {{#if (bool light.on true)}}On{{else}}Off{{/if}}</p>
-                <p>Colour: {{xyToRgb light}}</p>
+            <div class="colour container" title="{{labelArray (xyToRgb light) ../labels.rgb}}">
+                <div class="pure-g">
+                    <div class="pure-u-1-2" style="background-color: rgb({{xyToRgb light}})"></div>
+                    <div class="pure-u-1-5">
+                        <form class="pure-form">
+                            <fieldset>
+                                <legend>Set Light Colour</legend>
+
+                                {{#each (xyToRgb light) as |colour|}}
+                                <input type="text" value="{{colour}}" /> {{/each}}
+                                <button type="submit" class="pure-button pure-button-primary">Send</button>
+                            </fieldset>
+                        </form>
+                    </div>
+                </div>
+
+
+                <div class="container">
+                    <h4>
+                        #{{light.id}}
+                        <strong>{{light.name}}</strong> ({{light.attributes.attributes.manufacturername}} {{light.type}})
+                    </h4>
+                    {{#each light.attributes.attributes as |value key|}}
+                    <p>{{key}}: {{value}}</p>
+                    {{/each}} {{#each light.state.attributes as |value key|}}
+                    <p>{{key}}: {{value}}</p>
+                    {{/each}}
+                </div>
+
             </div>
         </div>
-        {{json light}}
-        
     </div>
-{{/each}}
+    {{/each}}
+</div>
