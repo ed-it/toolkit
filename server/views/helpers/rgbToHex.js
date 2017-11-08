@@ -1,4 +1,4 @@
-const rgbToHex = require('../../../lib/rgb-to-hex');
+const { rgbToHex } = require('../../../lib/colour-tools');
 
 module.exports = colour => {
     const c = Array.isArray(colour)

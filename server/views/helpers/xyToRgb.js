@@ -1,5 +1,5 @@
-const { cieToRgb } = require('../../../lib/cie_rgb_converter');
+const { xyToRgb } = require('../../../lib/colour-tools');
 
 module.exports = light => {
-    return cieToRgb(light.xy[0], light.xy[1], light.brightness);
+    return xyToRgb(light.xy[0], light.xy[1], light.brightness);
 };
