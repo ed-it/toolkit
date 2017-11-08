@@ -1,0 +1,21 @@
+<h3>API Events</h3>
+
+<form method="post" action="/api/event" class="pure-form pure-form-aligned">
+    <fieldset>
+        <legend>Trigger API Event</legend>
+        <div class="pure-control-group">
+            <label for="event">Event</label>
+            <select name="event" id="event">
+                {{#each allEvents as |event|}}
+                <option value="{{event}}" {{selected event ../lastEventTriggered}}>{{event}}</option>
+                {{/each}}
+            </select>
+        </div>
+        <div class="pure-control-group">
+            <label for="event">Params</label>
+            <textarea name="params"></textarea>
+        </div>
+    </fieldset>
+
+    <button type="submit" class="pure-button pure-button-primary">Submit</button>
+</form>
