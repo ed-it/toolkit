@@ -22,7 +22,7 @@ module.exports = {
             path: '/hubs',
             handler: async (request, h) => {
                 const { hubs } = request.server.app.config;
-                return h.view('hub-manager/templates/index', { hubs: hubs || [] });
+                return h.view('hue-integration/hub-manager/templates/index', { hubs: hubs || [] });
             }
         });
 
@@ -31,7 +31,7 @@ module.exports = {
             path: '/hubs/manage',
             handler: async (request, h) => {
                 const { hubs } = request.server.app.config;
-                return h.view('hub-manager/templates/manage', { hubs });
+                return h.view('hue-integration/hub-manager/templates/manage', { hubs });
             }
         });
 
@@ -57,7 +57,7 @@ module.exports = {
             path: '/hubs/users',
             handler: async (request, h) => {
                 const { hubs } = request.server.app.config;
-                return h.view('hub-manager/templates/users', { hubs });
+                return h.view('hue-integration/hub-manager/templates/users', { hubs });
             }
         });
 

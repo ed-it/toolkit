@@ -1,0 +1,30 @@
+<h2>Lights</h2>
+
+<style>
+    .light .colour {
+        width: 100px;
+        height: 100px;
+    }
+    .swatch {
+        width: 100%;
+        height: 100%;
+    }
+</style>
+
+{{#each lights as |light|}}
+    <div class="hub-lights">
+        <div class="light">
+            <div class="colour" title="{{labelArray (xyToRgb light) ../labels.rgb}}">
+                <div class="swatch" style="background-color: rgb({{xyToRgb light}})"></div>
+            </div>
+            <div class="container">
+                <h4><b>{{light.name}}</b></h4>
+                <p>{{light.attributes.attributes.manufacturername}} {{light.type}}</p>
+                <p>State: {{#if (bool light.on true)}}On{{else}}Off{{/if}}</p>
+                <p>Colour: {{xyToRgb light}}</p>
+            </div>
+        </div>
+        {{json light}}
+        
+    </div>
+{{/each}}

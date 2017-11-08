@@ -12,8 +12,7 @@ const writeFileAsync = promisify(fs.writeFile);
 const settings = require('./plugins/settings');
 const logReader = require('./plugins/log-reader');
 const eventTrigger = require('./plugins/events');
-const hubManager = require('./plugins/hub-manager');
-const lightsManager = require('./plugins/lights-manager');
+const hueIntegration = require('./plugins/hue-integration');
 const staticEndpoints = require('./plugins/static-endpoints');
 
 const init = async shared => {
@@ -32,7 +31,7 @@ const init = async shared => {
 
     Object.keys(shared).forEach(key => (server.app[key] = shared[key]));
 
-    await server.register([Inert, Vision, settings, logReader, eventTrigger, hubManager, lightsManager, staticEndpoints]);
+    await server.register([Inert, Vision, settings, logReader, eventTrigger, hueIntegration, staticEndpoints]);
 
     server.views({
         engines: { hbs: require('handlebars') },

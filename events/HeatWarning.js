@@ -15,6 +15,7 @@ const register = shared => ({
             } else {
                 light.xy = shared.h.rgbToXy(shared.h.colours.YELLOW);
             }
+
             await shared.hub.lights.save(light);
             await shared.h.sleep(8000);
             await shared.h.setLightToCurrentStar();

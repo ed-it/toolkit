@@ -1,0 +1,9 @@
+{
+    "name": "@ed-it/server-plugin-hue-integration",
+    "version": "0.1.0",
+    "description": "A plugin for integrating with the Philips Hue",
+    "dependencies": {
+        "bounce": "^1.2.0",
+        "huejay": "^1.7.1"
+    }
+}
