@@ -29,7 +29,8 @@ This app is built on nodejs 8 and uses `async/await` through the code to achive 
 
 ## Installing
 
-Currently the application is alpha software and not yet available via npm, or as a binary.  You can however clone the repository:
+Currently the application is alpha software and not yet available via npm, or as a binary. You require `node 8` to run this.  After installing node you also need to run `npm install -g windows-build-tools` to install the required build tools.
+Once done you can clone the repo:
 
 ```bash
 > git clone https://github.com/ed-it/toolkit.git ed-it
@@ -40,8 +41,6 @@ Currently the application is alpha software and not yet available via npm, or as
 
 Once up and running you can go to [http://localhost:12342/hubs](http://localhost:12342/hubs) and click "Manage Hubs".  It will find all available hubs in the network.  Select the one you want to use for the client.
 Next go to [http://localhost:12342/settings](http://localhost:12342/settings) and enter the username associated with your hub (docs on this soon!).
-
-> *You should set this up before you start the game*
 
 You also need to enter the location of you Elite: Dangerous logs.  On Windows this is usually `C:\Users\[username]\Documents\Save Games\Frontier Developments\Elite Dangerous`.
 
