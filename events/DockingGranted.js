@@ -3,7 +3,7 @@ const register = shared => ({
     command: async event => {
         const lights = await shared.hub.lights.getAll();
 
-        lights.map(async (light, index) => {
+        const lightsToSet = lights.map(async (light, index) => {
             light.on = true;
             light.alert = 'lselect';
             light.effect = 'none';
@@ -15,10 +15,11 @@ const register = shared => ({
             } else {
                 light.xy = shared.h.rgbToXy(shared.h.colours.GREEN);
             }
-            await shared.hub.lights.save(light);
-            await shared.h.sleep(10000);
-            await shared.h.setLightToCurrentStar();
+            return shared.hub.lights.save(light);
         });
+        await Promise.all(lightsToSet);
+        await shared.h.sleep(10000);
+        await shared.h.setLightToCurrentStar();
     }
 });
 
