@@ -4,7 +4,6 @@ const register = shared => ({
         const lights = await shared.hub.lights.getAll();
 
         const { ShieldsUp } = event;
-        console.log(ShieldsUp);
 
         lights.map(async (light, index) => {
             light.on = true;

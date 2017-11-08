@@ -10,7 +10,6 @@ const init = async (command) => {
     try {
         const lights = await client.lights.getAll();
         lights.forEach(async light => {
-            console.log(command);
             if (command) {
                 light.on = command === 'on' ? true : false;
             } else {

@@ -8,7 +8,6 @@ module.exports = {
             handler: async (reqeust, h) => {
                 try {
                     const lights = await server.app.hub.lights.getAll();
-                    console.log(lights);
                     return h.view('hue-integration/lights-manager/templates/index', {
                         lights,
                         labels: { rgb: ['Red', 'Green', 'Blue'] }

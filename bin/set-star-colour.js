@@ -34,7 +34,6 @@ const client = createClient({ host: process.env.HUE_HUB_IP, username: process.en
 const init = async ({ red, green, blue, brightness, saturation }) => {
     try {
         const light = await client.lights.getById(2);
-        console.log(light);
     
         light.brightness = brightness;
         light.xy = rgbToXy(red, green, blue);
