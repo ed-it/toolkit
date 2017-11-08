@@ -13,7 +13,9 @@
             <label for="event">Event</label>
             <select name="event" id="event">
                 {{#each allEvents as |event|}}
-                <option value="{{event}}" {{selected event ../lastEventTriggered}}>{{event}}</option>
+                <option value="{{event}}" {{selected event ../lastEventTriggered}}>
+                    {{event}}{{#if (containedIn ../events event)}}*{{/if}}
+                </option>
                 {{/each}}
             </select>
         </div>

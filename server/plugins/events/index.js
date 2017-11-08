@@ -1,4 +1,6 @@
 const Bounce = require('bounce');
+const Path = require('path');
+const glob = require('glob-promise');
 const pkg = require('./package.json');
 const allEvents = require('./all-events');
 
@@ -6,6 +8,25 @@ module.exports = {
     name: pkg.name,
     version: pkg.version,
     register: async (server, options) => {
+        server.method('loadEvents', async eventRoot => {
+            const eventPath = Path.resolve(`${eventRoot}/events`);
+            const eventPaths = await glob(`${eventPath}/**/!(*.spec).js`);
+
+            const events = eventPaths
+                .map(eventPath => {
+                    let event;
+                    try {
+                        event = require(Path.resolve(eventPath))(server.app);
+                    } catch (e) {
+                        event = false;
+                    }
+                    return event.event && event;
+                })
+                .filter(f => !!f)
+                .reduce((reducer, e) => ({ ...reducer, [e.event]: e.command }), {});
+            return (Object.keys(events).length > 0 && events) || {};
+        });
+
         server.method('triggerEvent', async ({ event, params }) => {
             try {
                 const eventFn = server.app.events[event];
@@ -28,8 +49,8 @@ module.exports = {
             method: 'GET',
             path: '/api/event',
             handler: async (request, h) => {
-                const { lastEventTriggered } = request.server.app;
-                return h.view('events/templates/api-event', { allEvents, lastEventTriggered });
+                const { lastEventTriggered, events } = request.server.app;
+                return h.view('events/templates/api-event', { allEvents, events, lastEventTriggered });
             }
         });
 
@@ -52,5 +73,16 @@ module.exports = {
                 }
             }
         });
+
+        const init = async () => {
+            try {
+                server.app.events = await server.methods.loadEvents(server.app.root);
+            } catch (error) {
+                server.log(['error'], error);
+                Bounce.rethrow(error, 'system');
+            }
+        };
+
+        init();
     }
 };

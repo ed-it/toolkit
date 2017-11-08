@@ -45,7 +45,6 @@ const init = async () => {
     try {
         const config = await loadConfig();
         const shared = await createSharedState({ config, args, root: __dirname });
-        shared.events = await loadEvents({ shared });
 
         await SettingsServer(shared);
     } catch (e) {
