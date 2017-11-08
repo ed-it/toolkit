@@ -38,7 +38,10 @@ module.exports = {
             path: '/api/event',
             handler: async (request, h) => {
                 try {
-                    const { event, params } = request.payload;
+                    let { event, params } = request.payload;
+                    if (params && typeof params === 'string') {
+                        params = JSON.parse(params);
+                    }
                     const result = await request.server.methods.triggerEvent({ event, params });
                     request.server.app.lastEventTriggered = event;
                     return h.redirect('/api/event');

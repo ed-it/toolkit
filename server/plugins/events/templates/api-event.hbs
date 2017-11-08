@@ -1,5 +1,11 @@
 <h3>API Events</h3>
 
+{{#if lastEventTriggered}}
+<div>
+    <strong>Last event triggered: {{lastEventTriggered}}</strong>
+</div>
+{{/if}}
+
 <form method="post" action="/api/event" class="pure-form pure-form-aligned">
     <fieldset>
         <legend>Trigger API Event</legend>

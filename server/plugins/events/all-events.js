@@ -53,6 +53,7 @@ module.exports = [
     'LaunchFighter',
     'LaunchSRV',
     'Liftoff',
+    'Loadout',
     'LoadGame',
     'Localisation',
     'Location',
