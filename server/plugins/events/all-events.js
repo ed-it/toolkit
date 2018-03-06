@@ -113,6 +113,7 @@ module.exports = [
     'ShipyardSell',
     'ShipyardSwap',
     'ShipyardTransfer',
+    'Status',
     'SupercruiseEntry',
     'SupercruiseExit',
     'Synthesis',

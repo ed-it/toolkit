@@ -14,29 +14,29 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@ronomon/opened": "^1.3.1",
+    "@ronomon/opened": "^1.4.0",
     "bounce": "^1.2.0",
     "color-temperature": "^0.2.7",
-    "dotenv": "^4.0.0",
+    "dotenv": "^5.0.1",
     "glob": "^7.1.2",
     "glob-promise": "^3.3.0",
     "handlebars": "^4.0.11",
-    "hapi": "^17.0.1",
-    "huejay": "^1.7.1",
+    "hapi": "^17.2.1",
+    "huejay": "^1.8.0",
     "immutable-data-store": "0.0.2",
-    "inert": "^5.0.1",
+    "inert": "^5.1.0",
     "interpolate-rgb": "0.0.2",
     "leapjs": "^0.6.4",
     "minimist": "^1.2.0",
-    "node-watch": "^0.5.5",
+    "node-watch": "^0.5.7",
     "say": "^0.14.0",
     "tail": "^1.2.3",
-    "vision": "^5.1.0"
+    "vision": "^5.3.1"
   },
   "devDependencies": {
     "chai": "^4.1.2",
-    "mocha": "^4.0.1",
-    "nodemon": "^1.12.1"
+    "mocha": "^5.0.2",
+    "nodemon": "^1.17.1"
   },
   "pkg": {
     "assets": "server/views/**/*"

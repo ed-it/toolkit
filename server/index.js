@@ -11,9 +11,11 @@ const writeFileAsync = promisify(fs.writeFile);
 
 const settings = require('./plugins/settings');
 const logReader = require('./plugins/log-reader');
+const statusReader = require('./plugins/status');
 const eventTrigger = require('./plugins/events');
 const hueIntegration = require('./plugins/hue-integration');
 const staticEndpoints = require('./plugins/static-endpoints');
+
 
 const init = async shared => {
     const server = new Hapi.Server({
@@ -31,7 +33,7 @@ const init = async shared => {
 
     Object.keys(shared).forEach(key => (server.app[key] = shared[key]));
 
-    await server.register([Inert, Vision, settings, logReader, eventTrigger, hueIntegration, staticEndpoints]);
+    await server.register([Inert, Vision, settings, logReader, eventTrigger, hueIntegration, staticEndpoints, statusReader]);
 
     server.views({
         engines: { hbs: require('handlebars') },
@@ -40,6 +42,18 @@ const init = async shared => {
         layout: true,
         helpersPath: `${__dirname}/views/helpers`,
         isCached: !shared.config.debug
+    });
+
+    server.route({
+        method: 'GET',
+        path: '/node_modules/{param*}',
+        handler: {
+            directory: {
+                path: '../../node_modules',
+                redirectToSlash: true,
+                index: true
+            }
+        }
     });
     server.route({
         method: 'GET',

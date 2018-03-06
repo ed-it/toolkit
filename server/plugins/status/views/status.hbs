@@ -1,0 +1,39 @@
+<table class="table" id="pips">
+
+    <thead>
+        <caption>Pips</caption>
+        <tr>
+            <th>System</th>
+            <th>Engine</th>
+            <th>Weapons</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+    </tbody>
+</table>
+
+<script type="text/javascript" src="node_modules/nes/dist/client.js"></script>
+<script>
+    var client = new nes.Client('ws://localhost:12342');
+
+    const start = async () => {
+
+        const pipsTable = document.getElementById('pips');
+        const handler = (update, flags) => {
+            console.log(update);
+            pipsTable.querySelectorAll('td').forEach((el, index) => {
+                el.innerText = update.pips.raw[index];
+            })
+        };
+
+        await client.connect();
+        client.subscribe('/api/status', handler);
+    };
+
+    start();
+</script>
