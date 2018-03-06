@@ -1,21 +1,24 @@
-<table class="table" id="pips">
+<div class="row">
+    <table class="table" id="pips">
+        <thead>
+            <caption>Pips</caption>
+            <tr>
+                <th>System</th>
+                <th>Engine</th>
+                <th>Weapons</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </tbody>
+    </table>
+    <ul id="status-list">
 
-    <thead>
-        <caption>Pips</caption>
-        <tr>
-            <th>System</th>
-            <th>Engine</th>
-            <th>Weapons</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td></td>
-            <td></td>
-            <td></td>
-        </tr>
-    </tbody>
-</table>
+    </ul>
 
 <script type="text/javascript" src="node_modules/nes/dist/client.js"></script>
 <script>
@@ -24,11 +27,16 @@
     const start = async () => {
 
         const pipsTable = document.getElementById('pips');
+        const statusList = document.getElementById('status-list');
         const handler = (update, flags) => {
             console.log(update);
             pipsTable.querySelectorAll('td').forEach((el, index) => {
                 el.innerText = update.pips.raw[index];
-            })
+            });
+
+            statusList.innerHTML = Object.keys(update.status).map(key => {
+                return `<li><strong>${key}:</stong>${update.status[key]}</li>`;
+            }).join('');
         };
 
         await client.connect();
