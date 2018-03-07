@@ -1,8 +1,6 @@
 <style>
     #pip-container {
-        position: absolute;
         background: transparent;
-        left: 500px;
         width: 99px;
         height: 100px;
         display: grid;
@@ -35,7 +33,7 @@
     }
 
     .pips span.half-active {
-        background: linear-gradient(to bottom, #000000 0%,#000000 46%,#42d6ca 50%,#42d6ca 100%);
+        background: linear-gradient(to bottom, #000000 0%, #000000 46%, #42d6ca 50%, #42d6ca 100%);
     }
 
     #pip-container .systems {
@@ -47,129 +45,141 @@
     }
 
     #pip-container .weapons {
-       background-color: rgba(255, 0, 0, 0.2);
+        background-color: rgba(255, 0, 0, 0.2);
     }
 </style>
 
 <div class="row">
-    <span id="time">Game Time: <i></i></span>
+    <div id="time">Game Time:
+        <i></i>
+    </div>
 
-    <div id="pip-container">
-        <div class="pips systems">
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
+    <div class="pure-g">
+        <div class="pure-u-1-3">
+            <h3>Ship Info</h3>
+            <table id="ship-info-table" class="pure-table">
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="row">Vehicle Type</th>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Ship Name</th>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Docked</th>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Gear Deployed</th>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Shields up</th>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">FSD Status</th>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
-        <div class="pips engines">
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
+
+        <div class="pure-u-1-3">
+            <h3>Pips</h3>
+            <div id="pip-container">
+                <div class="pips systems">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="pips engines">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="pips weapons">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
         </div>
-        <div class="pips weapons">
-            <span></span>
-            <span></span>
-            <span></span>
-            <span></span>
+        <div class="pure-u-1-3">
+            <p>Thirds</p>
         </div>
     </div>
 
-    <table class="table" id="pips">
-        <thead>
-            <caption>Pips</caption>
-            <tr>
-                <th>System</th>
-                <th>Engine</th>
-                <th>Weapons</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-            </tr>
-        </tbody>
-    </table>
-    <ul id="status-list">
 
-    </ul>
 
-<script type="text/javascript" src="node_modules/nes/dist/client.js"></script>
-<script>
-    var client = new nes.Client('ws://localhost:12342');
+    <script type="text/javascript" src="node_modules/nes/dist/client.js"></script>
+    <script>
+        var client = new nes.Client('ws://localhost:12342');
 
-    const start = async () => {
+        const start = async () => {
 
-        const timeEl = document.getElementById('time');
-        const pipsTable = document.getElementById('pips');
-        const statusList = document.getElementById('status-list');
-        const pipContainer = document.getElementById('pip-container');
+            const timeEl = document.getElementById('time');
 
-        const handler = (update, flags) => {
-            console.log(update);
+            const pipContainer = document.getElementById('pip-container');
 
-            const time = new Date(update.timestamp).toISOString().slice(-13, -5);
-            timeEl.children[0].innerText = time;
+            const handler = (update, flags) => {
+                console.log(update);
 
-            const sysElms = Array.from(document.querySelectorAll('.systems span')).reverse();
-            const engElms = Array.from(document.querySelectorAll('.engines span')).reverse();
-            const wepElms = Array.from(document.querySelectorAll('.weapons span')).reverse();
+                const time = new Date(update.timestamp).toISOString().slice(-13, -5);
+                timeEl.children[0].innerText = time;
 
-            const maxSysPips = Math.ceil(update.pips.sys);
-            const maxEngPips = Math.ceil(update.pips.eng);
-            const maxWepPips = Math.ceil(update.pips.wep);
-            console.log(`System: ${update.pips.sys}/${maxSysPips}, Engine: ${update.pips.eng}/${maxEngPips}, Weapon: ${update.pips.wep}/${maxWepPips}`);
+                const sysElms = Array.from(document.querySelectorAll('.systems span')).reverse();
+                const engElms = Array.from(document.querySelectorAll('.engines span')).reverse();
+                const wepElms = Array.from(document.querySelectorAll('.weapons span')).reverse();
 
-            function valToElm(element, maxVal, index) {
-                if (index < maxVal) {
-                    if (index % 2 === 0) {
-                        return element.classList.add('active');
+                const maxSysPips = Math.ceil(update.pips.sys);
+                const maxEngPips = Math.ceil(update.pips.eng);
+                const maxWepPips = Math.ceil(update.pips.wep);
+
+                console.log(`System: ${update.pips.sys}/${maxSysPips}, Engine: ${update.pips.eng}/${maxEngPips}, Weapon: ${update.pips.wep}/${maxWepPips}`);
+
+                function valToElm(element, index, val) {
+                    if (index < Math.ceil(val)) {
+                        const check = val - index;
+                        if (check > 1 || Number.isInteger(check)) {
+                            element.classList.add('active');
+                        } else {
+                            element.classList.add('half-active');
+                        }
                     }
                 }
-                if (index === maxVal) {
-                    if (index % 2 === 0) {
-                        return element.classList.add('active');
-                    }
-                    return element.classList.add('half-active');
-                }
-            }
 
-            sysElms.forEach((element, index) => {
-                // Remove any classes
-                element.classList.remove('active');
-                element.classList.remove('half-active');
-                // Add active to the 
-                valToElm(element, maxSysPips, index);
-            });
-            engElms.forEach((element, index) => {
-                // Remove any classes
-                element.classList.remove('active');
-                element.classList.remove('half-active');
-                valToElm(element, maxEngPips, index);
-            });
-            wepElms.forEach((element, index) => {
-                // Remove any classes
-                element.classList.remove('active');
-                element.classList.remove('half-active');
-                valToElm(element, maxWepPips, index);
-            });
+                sysElms.forEach((element, index) => {
+                    element.classList.remove('active');
+                    element.classList.remove('half-active');
+                    valToElm(element, index, update.pips.sys);
+                });
+                engElms.forEach((element, index) => {
+                    element.classList.remove('active');
+                    element.classList.remove('half-active');
+                    valToElm(element, index, update.pips.eng);
+                });
+                wepElms.forEach((element, index) => {
+                    element.classList.remove('active');
+                    element.classList.remove('half-active');
+                    valToElm(element, index, update.pips.wep);
+                });
+            };
 
-            pipsTable.querySelectorAll('td').forEach((el, index) => {
-                if (index === 0) el.innerText = update.pips.sys;
-                if (index === 1) el.innerText = update.pips.eng;
-                if (index === 2) el.innerText = update.pips.wep;
-            });
-
-            statusList.innerHTML = Object.keys(update.status).map(key => {
-                return `<li><strong>${key}:</stong>${update.status[key]}</li>`;
-            }).join('');
+            await client.connect();
+            client.subscribe('/stream/status', handler);
         };
 
-        await client.connect();
-        client.subscribe('/stream/status', handler);
-    };
-
-    start();
-</script>
+        start();
+    </script>
