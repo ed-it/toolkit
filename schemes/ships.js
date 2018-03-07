@@ -26,7 +26,8 @@ const shipModels = {
         'Independant_Trader',
         'Type6',
         'Type7',
-        'Type9'
+        'Type9',
+        'Type10'
     ],
     'Zorgon Peterson': ['Adder', 'FerDeLance', 'Hauler'],
     'Saud Kruger': ['Dolphin', 'Orca', 'BelugaLiner']

@@ -58,8 +58,8 @@ module.exports = {
             path: '/settings/update',
             handler: async (request, h) => {
                 try {
-                    const { host, username, directory, debug, port } = request.payload;
-                    await server.methods.updateConfig({ hub: { host, username }, log: { directory }, debug, port });
+                    const { host, username, directory, debug, port, accessToken } = request.payload;
+                    await server.methods.updateConfig({ hub: { host, username }, log: { directory }, debug, port, dropbox: {accessToken} });
                     return h.redirect('/settings');
                 } catch (e) {
                     request.log(['error'], error);

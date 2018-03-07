@@ -6,47 +6,23 @@ const Opened = require('@ronomon/opened');
 const Bounce = require('bounce');
 const Nes = require('nes');
 
-const parseFlags = require('./parse-flags');
+const statusStream = require('./watch-status-file');
 
 module.exports = {
     name: 'status-reader',
     version: '1.0.0',
     register: async (server, options) => {
+
+        // Register a websocket endpoint
         await server.register(Nes);
-        server.subscription('/api/status');
+        server.subscription('/stream/status');
 
-        server.method('createStatusStream', statusFile => {
-            server.log(['debug'], 'Creating Status');
-            const logStream = fs.watchFile(statusFile, (curr, prev) => {
-                let data;
-                try {
-                    data = fs.readFileSync(statusFile);
-                    if (!data) {
-                        server.log[('warning', 'No Data')];
-                        return;
-                    }    
-                } catch (e) {
-                    console.error(e);
-                    return;
-                }
-                let result;
-                try {
-                    result = JSON.parse(data.toString());
-                } catch (e) {
-                    console.error(e);
-                    return;
-                }
-                const { event, ...params } = result;
+        // We call this method on init to start a file watcher and trigger server events
+        server.method('createStatusStream', statusStream(server, options));
 
-                const [sys, eng, wep] = params.Pips;
-                const flags = params.Flags;
-                const status = parseFlags(flags);
-
-                server.publish('/api/status', { event, pips: { sys, eng, wep, raw: params.Pips }, status });
-                server.methods.triggerEvent({ event, params });
-            });
-        });
-
+        /**
+         * Static page for viewing the status
+         */
         server.route({
             method: 'GET',
             path: '/status',
@@ -62,25 +38,13 @@ module.exports = {
             }
         });
 
-        // server.route({
-        //     method: 'GET',
-        //     path: '/api/status',
-        //     config: {
-        //         id: 'status',
-        //         handler: (request, h) => {
-
-        //             return 'world!';
-        //         }
-        //     }
-        // })
-
         const init = async () => {
             try {
                 const { directory } = server.app.config.log;
                 const logPath = Path.resolve(directory);
                 server.log(['debug'], 'Status Plugin');
                 const statusFile = Path.join(logPath, 'Status.json');
-                console.log(statusFile);
+                server.log(['debug'], `Status File: ${statusFile}`);
                 return server.methods.createStatusStream(statusFile);
             } catch (error) {
                 server.log(['error'], error);

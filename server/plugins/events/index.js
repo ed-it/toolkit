@@ -29,7 +29,7 @@ module.exports = {
 
         server.method('triggerEvent', async ({ event, params }) => {
             try {
-                const eventFn = server.app.events[event];
+                const eventFn = (server.app && server.app.events) && server.app.events[event];
 
                 if (!eventFn || typeof eventFn !== 'function') {
                     const newError = new Error(`No event for ${event}`);
@@ -58,7 +58,9 @@ module.exports = {
             method: 'POST',
             path: '/api/event',
             handler: async (request, h) => {
+                let parsedParams;
                 try {
+                    console.log(request.payload);
                     let { event, params } = request.payload;
                     if (params && typeof params === 'string') {
                         params = JSON.parse(params);
@@ -71,6 +73,7 @@ module.exports = {
                     Bounce.rethrow(error, 'system');
                     return h.view('shared/templates/error', { error });
                 }
+                
             }
         });
 

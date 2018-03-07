@@ -4,7 +4,9 @@ const VEHICLE_FIGHTER = 'Fighter';
 
 module.exports = function parseFlags(flags) {
     let value;
-    const status = {};
+    const status = {
+        flags
+    };
 
     value = 67108864; // In SRV
     if (flags >= value) {

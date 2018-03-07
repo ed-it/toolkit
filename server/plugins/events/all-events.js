@@ -1,4 +1,5 @@
 module.exports = [
+    'EDIT_EVENT',
     'ApproachSettlement',
     'BodyType values',
     'Bounty',
@@ -60,6 +61,7 @@ module.exports = [
     'MarketBuy',
     'MarketSell',
     'MassModuleStore',
+    'Materials',
     'MaterialCollected',
     'MaterialDiscarded',
     'MaterialDiscovered',
