@@ -4,7 +4,7 @@ const createPosition = require('./create-position');
 
 const defaultStatus = {
     event: 'Status',
-    Pips: [4, 4, 4],
+    Pips: [5, 3, 4],
     Flags: 0,
     GuiPanel: 0,
     Longitude: 0,

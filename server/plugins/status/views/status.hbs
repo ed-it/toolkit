@@ -34,6 +34,10 @@
         border-color: #white;
     }
 
+    .pips span.half-active {
+        background: linear-gradient(to bottom, #000000 0%,#000000 46%,#42d6ca 50%,#42d6ca 100%);
+    }
+
     #pip-container .systems {
         background-color: rgba(0, 0, 255, 0.2);
     }
@@ -109,34 +113,48 @@
             const time = new Date(update.timestamp).toISOString().slice(-13, -5);
             timeEl.children[0].innerText = time;
 
-            update.pips.raw.forEach((pip, index) => {
-                const totalPips = pip / 2;
-                if (index === 0) {
-                    console.log(document.querySelectorAll('.systems span'));
-                    Array.from(document.querySelectorAll('.systems span')).reverse().forEach((element, index) => {
-                        element.classList.remove('active');
-                        if (index < totalPips) {
-                            element.classList.add('active');
-                        }
-                    })
+            const sysElms = Array.from(document.querySelectorAll('.systems span')).reverse();
+            const engElms = Array.from(document.querySelectorAll('.engines span')).reverse();
+            const wepElms = Array.from(document.querySelectorAll('.weapons span')).reverse();
+
+            const maxSysPips = Math.ceil(update.pips.sys);
+            const maxEngPips = Math.ceil(update.pips.eng);
+            const maxWepPips = Math.ceil(update.pips.wep);
+            console.log(`System: ${update.pips.sys}/${maxSysPips}, Engine: ${update.pips.eng}/${maxEngPips}, Weapon: ${update.pips.wep}/${maxWepPips}`);
+
+            function valToElm(element, maxVal, index) {
+                if (index < maxVal) {
+                    if (index % 2 === 0) {
+                        return element.classList.add('active');
+                    }
                 }
-                if (index === 1) {
-                    Array.from(document.querySelectorAll('.engines span')).reverse().forEach((element, index) => {
-                        element.classList.remove('active');
-                        if (index < totalPips) {
-                            element.classList.add('active');
-                        }
-                    })
+                if (index === maxVal) {
+                    if (index % 2 === 0) {
+                        return element.classList.add('active');
+                    }
+                    return element.classList.add('half-active');
                 }
-                if (index === 2) {
-                    Array.from(document.querySelectorAll('.weapons span')).reverse().forEach((element, index) => {
-                        element.classList.remove('active');
-                        if (index < totalPips) {
-                            element.classList.add('active');
-                        }
-                    })
-                }
-            })
+            }
+
+            sysElms.forEach((element, index) => {
+                // Remove any classes
+                element.classList.remove('active');
+                element.classList.remove('half-active');
+                // Add active to the 
+                valToElm(element, maxSysPips, index);
+            });
+            engElms.forEach((element, index) => {
+                // Remove any classes
+                element.classList.remove('active');
+                element.classList.remove('half-active');
+                valToElm(element, maxEngPips, index);
+            });
+            wepElms.forEach((element, index) => {
+                // Remove any classes
+                element.classList.remove('active');
+                element.classList.remove('half-active');
+                valToElm(element, maxWepPips, index);
+            });
 
             pipsTable.querySelectorAll('td').forEach((el, index) => {
                 if (index === 0) el.innerText = update.pips.sys;
