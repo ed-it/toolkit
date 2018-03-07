@@ -1,8 +1,0 @@
-.landing-gear {
-    width: 200px;
-    height: 200px;
-}
-
-.landing-gear.active {
-    background-image: url('images/landing-gear-png');
-}

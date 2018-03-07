@@ -1,11 +1,53 @@
 <style>
-    #landing-gear {
-        width: 200px;
-        height: 200px;
+    #pip-container {
+        position: absolute;
+        background: transparent;
+        left: 500px;
+        width: 99px;
+        height: 100px;
+        display: grid;
+        grid-template-columns: 33px 33px 33px;
+        grid-gap: 0;
     }
 
-    #landing-gear.active {
-        background-image: url('images/landing-gear.png');
+    .pips {
+        height: 100%;
+        width: 100%;
+        align-items: stretch;
+    }
+
+    .pips span {
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 33%;
+        height: 30px;
+        box-sizing: border-box;
+        background-color: black;
+        border: 1px solid white;
+        margin: 10px;
+        border-radius: 20px;
+    }
+
+    .pips span.active {
+        background-color: #42D6CA;
+        border-color: #white;
+    }
+
+    .pips span.half-active {
+        background: linear-gradient(to bottom, #000000 0%,#000000 46%,#42d6ca 50%,#42d6ca 100%);
+    }
+
+    #pip-container .systems {
+        background-color: rgba(0, 0, 255, 0.2);
+    }
+
+    #pip-container .engines {
+        background-color: rgba(0, 255, 0, 0.2);
+    }
+
+    #pip-container .weapons {
+       background-color: rgba(255, 0, 0, 0.2);
     }
 </style>
 
@@ -53,11 +95,6 @@
     <ul id="status-list">
 
     </ul>
-</div>
-
-<div class="icons">
-    <div id="landing-gear"></div>
-</div>
 
 <script type="text/javascript" src="node_modules/nes/dist/client.js"></script>
 <script>
@@ -68,7 +105,7 @@
         const timeEl = document.getElementById('time');
         const pipsTable = document.getElementById('pips');
         const statusList = document.getElementById('status-list');
-        const landingGear = document.getElementById('landing-gear');
+        const pipContainer = document.getElementById('pip-container');
 
         const handler = (update, flags) => {
             console.log(update);
@@ -128,12 +165,6 @@
             statusList.innerHTML = Object.keys(update.status).map(key => {
                 return `<li><strong>${key}:</stong>${update.status[key]}</li>`;
             }).join('');
-
-            if (update.status.landing_gear_down) {
-                landingGear.classList.add('active')
-            } else {
-                landingGear.classList.remove('active');
-            }
         };
 
         await client.connect();
