@@ -28,6 +28,7 @@
     "interpolate-rgb": "0.0.2",
     "leapjs": "^0.6.4",
     "minimist": "^1.2.0",
+    "nes": "^7.0.3",
     "node-watch": "^0.5.7",
     "say": "^0.14.0",
     "tail": "^1.2.3",

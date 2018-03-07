@@ -2,7 +2,7 @@ const VEHICLE_SHIP = 'Ship';
 const VEHICLE_SRV = 'SRV';
 const VEHICLE_FIGHTER = 'Fighter';
 
-function parseFlags(flags) {
+module.exports = function parseFlags(flags) {
     let value;
     const status = {};
 
@@ -179,16 +179,3 @@ function parseFlags(flags) {
 
     return status;
 }
-
-const register = shared => ({
-    event: 'Status',
-    command: async event => {
-        const [sys, eng, wep] = event.Pips;
-        const flags = event.Flags;
-        const status = parseFlags(flags)
-        console.log('status', status);
-        console.log(sys, eng, wep, status);
-    }
-});
-
-module.exports = register;
