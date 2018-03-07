@@ -18,6 +18,7 @@
     "bounce": "^1.2.0",
     "color-temperature": "^0.2.7",
     "dotenv": "^5.0.1",
+    "dropbox": "^4.0.1",
     "glob": "^7.1.2",
     "glob-promise": "^3.3.0",
     "handlebars": "^4.0.11",
