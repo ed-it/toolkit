@@ -15,6 +15,7 @@ const statusReader = require('./plugins/status');
 const eventTrigger = require('./plugins/events');
 const hueIntegration = require('./plugins/hue-integration');
 const staticEndpoints = require('./plugins/static-endpoints');
+const logImporter = require('./plugins/importer');
 
 
 const init = async shared => {
@@ -33,7 +34,7 @@ const init = async shared => {
 
     Object.keys(shared).forEach(key => (server.app[key] = shared[key]));
 
-    await server.register([Inert, Vision, settings, logReader, eventTrigger, hueIntegration, staticEndpoints, statusReader]);
+    await server.register([Inert, Vision, settings, logReader, logImporter, eventTrigger, hueIntegration, staticEndpoints, statusReader]);
 
     server.views({
         engines: { hbs: require('handlebars') },
