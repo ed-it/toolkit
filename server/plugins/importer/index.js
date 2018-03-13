@@ -101,6 +101,7 @@ module.exports = {
                     .map(location => {
                         const { timestamp, event, ...params } = location;
                         const result = {
+                            timestamp,
                             //_params: params,
                             star: {
                                 system: params.StarSystem,
