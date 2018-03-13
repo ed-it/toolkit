@@ -40,8 +40,8 @@ module.exports = {
                     const files = logFiles.map(logFile => Path.resolve(`${path}/${logFile}`));
                     resolve(files);
                 } catch (e) {
-                    server.log(['error'], error);
-                    reject(error);
+                    server.log(['error'], e);
+                    reject(e);
                 }
             });
         })

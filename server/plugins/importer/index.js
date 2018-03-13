@@ -7,130 +7,212 @@ module.exports = {
     version: '1.0.0',
     description: `Import all existing logs into a single database.`,
     register: async (server, options) => {
-        server.method('createDatabase', (name, dataObjectFn) => {
-            return new Promise((resolve, reject) => {
-                const db = new loki(name, {
-                    autoload: true,
-                    autoloadCallback: () => {
-                        let entries = db.getCollection('items');
-                        if (!entries) {
-                            entries = db.addCollection('items');
-                        }
-                        dataObjectFn().forEach(item => {
-                            if (!entries.findOne({ name: item.name })) {
-                                entries.insert(item);
-                            } else {
-                                entries.update(item);
-                            }
-                        });
-                        entries.commit();
-                    },
-                    autosave: true,
-                    autosaveInterval: 4000
-                });
-                resolve(db);
-            });
+        const db = new loki('db/log-entries.json', {
+            autoload: true,
+            autoloadCallback: () => {
+                collection = db.getCollection('log-entries');
+                if (!collection) {
+                    collection = db.addCollection('log-entries');
+                }
+                return collection;
+            },
+            autosave: true,
+            autosaveInterval: 5000
         });
 
-        server.method('getAllLogLines', logFiles => {
+        server.method('getAllLogLines', log => {
             const entries = [];
-            logFiles.forEach(log => {
-                const file = fs.readFileSync(log);
-                const lines = `${file}`.split('\n');
-                const parsed = lines.forEach(line => {
-                    try {
-                        if (line) {
-                            const p = JSON.parse(line);
-                            entries.push(p);
-                        }
-                    } catch (e) {
-                        console.log(`Unable to parse line ${log} ${line}`);
+            const file = fs.readFileSync(log);
+            const lines = `${file}`.split('\n');
+            const parsed = lines.forEach(line => {
+                try {
+                    if (line) {
+                        const p = JSON.parse(line);
+                        entries.push(p);
                     }
-                });
+                } catch (e) {
+                    console.log(`Unable to parse line ${log} ${line}`);
+                }
             });
             return entries;
+        });
+
+        async function lastFile(conf) {
+            await server.methods.updateConfig(conf);
+        }
+
+        server.route({
+            path: '/api/logs/bounties',
+            method: 'get',
+            handler: async (request, h) => {
+                const pview = collection.addDynamicView('bounties');
+                pview.applyWhere(obj => obj.event === 'Bounty');
+                const results = pview.data();
+
+                const result = results.reduce((reducer, line) => {
+                    const { event, timestamp, params } = line;
+                    // We store per day, so we may need to merge figures
+                    const timeKey = Math.floor(new Date(timestamp).getTime() / (1000 * 60 * 60 * 24));
+                    if (!reducer[timeKey]) {
+                        reducer[timeKey] = {
+                            timestamp,
+                            total: 0,
+                            factions: []
+                        };
+                    }
+
+                    let newFactions = (params.Rewards || []).map(line => ({ name: line.Faction, reward: line.Reward }));
+
+                    newFactions.forEach(line => {
+                        const index = reducer[timeKey].factions.findIndex(f => f.name === line.name);
+                        if (index > -1) {
+                            reducer[timeKey].factions[index].reward += line.reward;
+                        } else {
+                            reducer[timeKey].factions.push(line);
+                        }
+                    });
+
+                    reducer[timeKey] = Object.assign(reducer[timeKey], {
+                        total: (reducer[timeKey].total += params.TotalReward || 0)
+                    });
+                    return reducer;
+                }, {});
+
+                return {
+                    count: Object.keys(result).length,
+                    result
+                };
+            }
         });
 
         server.route({
             path: '/api/import-logs',
             method: 'get',
             handler: async (request, h) => {
-                const { directory } = server.app.config.log;
+                const { eventType } = request.query;
+                const { directory, lastFileSaved } = server.app.config.log;
                 const logPath = Path.resolve(directory);
-                const logs = await server.methods.getLogFiles(logPath);
 
-                const allLogLines = server.methods.getAllLogLines(logs);
+                let logs = await server.methods.getLogFiles(logPath);
 
-                const statistics = allLogLines
-                    .filter(line => line.event === 'Statistics')
-                    .reduce((reducer, line) => {
-                        const { event, timestamp, ...params } = line;
-                        // We store per day, so we may need to merge figures
-                        const timeKey = Math.floor(
-                            new Date(timestamp).getTime() / (1000 * 60 * 60)
-                        );
+                let indexOfLastImport = 0;
+                if (lastFileSaved) {
+                    indexOfLastImport = logs.findIndex(logFile => {
+                        return logFile.includes(lastFileSaved);
+                    });
+                }
 
-                        if (reducer[timeKey]) {
-                            Object.keys(reducer[timeKey]).forEach(key => {
-                                Object.keys(reducer[timeKey][key]).forEach(
-                                    item => {
-                                        if (
-                                            typeof reducer[timeKey][key][
-                                                item
-                                            ] === 'number'
-                                        ) {
-                                            reducer[timeKey][key][item] +=
-                                                params[key][item];
-                                        } else {
-                                            reducer[timeKey][key][item] =
-                                                params[key];
-                                        }
-                                    }
-                                );
+                const logsToImport = logs.splice(indexOfLastImport + 1, logs.length);
+
+                if (logsToImport.length > 0) {
+                    for (let log of logsToImport) {
+                        const logName = log.split('/').pop();
+                        console.log(logName, server.app.config.log.lastFileSaved);
+                        if (logName === server.app.config.log.lastFileSaved) {
+                            return;
+                        }
+                        const logLines = server.methods.getAllLogLines(log);
+
+                        for (let line of logLines) {
+                            const { event, timestamp, ...params } = line;
+                            collection.insert({
+                                event,
+                                timestamp,
+                                params,
+                                logName
                             });
                         }
-
-                        if (!reducer[timeKey]) {
-                            reducer[timeKey] = { timestamp, ...params };
-                        }
-                        return reducer;
-                    }, {});
-
-                const locations = allLogLines
-                    .filter(line => line.event === 'Location')
-                    .map(location => {
-                        const { timestamp, event, ...params } = location;
-                        const result = {
-                            timestamp,
-                            //_params: params,
-                            star: {
-                                system: params.StarSystem,
-                                position: params.StarPos,
-                                population: params.Population,
-                                security: {
-                                    name: params.SystemSecurity,
-                                    nameLocalised: params.SystemSecurity_Localised
-                                }
+                        const conf = Object.assign({}, server.app.config, {
+                            log: {
+                                directory,
+                                lastFileSaved: logName
                             }
-                        }
-                        if (params.Body) {
-                            result.body = {
-                                name: params.Body,
-                                type: params.BodyType,
-                                bodyId: params.BodyID
-                            }
-                        }
-                        if (params.Docked === true) {
-                            result.station = {
-                                name: params.StationName,
-                                type: params.StationType,
-                                marketId: params.MarketID
-                            }
-                        }
-                        return result;
-                    });
+                        });
+                        await lastFile(conf);
+                    }
+                } else {
+                    console.log('Skipping import');
+                }
 
-                return { statistics, locations };
+                const pview = collection.addDynamicView('stats');
+                pview.applyWhere(obj => obj.event === eventType);
+                const results = pview.data();
+
+                return {
+                    count: results.length,
+                    results
+                };
+
+                // const statistics = allLogLines
+                //     .filter(line => line.event === 'Statistics')
+                //     .reduce((reducer, line) => {
+                //         const { event, timestamp, ...params } = line;
+                //         // We store per day, so we may need to merge figures
+                //         const timeKey = Math.floor(
+                //             new Date(timestamp).getTime() / (1000 * 60 * 60)
+                //         );
+
+                //         if (reducer[timeKey]) {
+                //             Object.keys(reducer[timeKey]).forEach(key => {
+                //                 Object.keys(reducer[timeKey][key]).forEach(
+                //                     item => {
+                //                         if (
+                //                             typeof reducer[timeKey][key][
+                //                                 item
+                //                             ] === 'number'
+                //                         ) {
+                //                             reducer[timeKey][key][item] +=
+                //                                 params[key][item];
+                //                         } else {
+                //                             reducer[timeKey][key][item] =
+                //                                 params[key];
+                //                         }
+                //                     }
+                //                 );
+                //             });
+                //         }
+
+                //         if (!reducer[timeKey]) {
+                //             reducer[timeKey] = { timestamp, ...params };
+                //         }
+                //         return reducer;
+                //     }, {});
+
+                // const locations = allLogLines
+                //     .filter(line => line.event === 'Location')
+                //     .map(location => {
+                //         const { timestamp, event, ...params } = location;
+                //         const result = {
+                //             timestamp,
+                //             //_params: params,
+                //             star: {
+                //                 system: params.StarSystem,
+                //                 position: params.StarPos,
+                //                 population: params.Population,
+                //                 security: {
+                //                     name: params.SystemSecurity,
+                //                     nameLocalised: params.SystemSecurity_Localised
+                //                 }
+                //             }
+                //         }
+                //         if (params.Body) {
+                //             result.body = {
+                //                 name: params.Body,
+                //                 type: params.BodyType,
+                //                 bodyId: params.BodyID
+                //             }
+                //         }
+                //         if (params.Docked === true) {
+                //             result.station = {
+                //                 name: params.StationName,
+                //                 type: params.StationType,
+                //                 marketId: params.MarketID
+                //             }
+                //         }
+                //         return result;
+                //     });
+
+                // return { statistics, locations };
                 // const commanders = await server.methods.createDatabase(
                 //     'db/commanders.json',
                 //     () => {

@@ -11,14 +11,10 @@ module.exports = {
     version: '1.0.0',
     register: async (server, options) => {
         server.method('updateConfig', async newConfig => {
-            server.app.config = Object.assign({}, server.app.config, newConfig);
-
+            const updatedConfig = Object.assign({}, server.app.config, newConfig);
             const { root } = server.app;
-
-            await writeFileAsync(
-                Path.resolve(`${root}/config.json`),
-                JSON.stringify(server.app.config, null, 4)
-            );
+            await writeFileAsync(Path.resolve(`${root}/config.json`), JSON.stringify(updatedConfig, null, 4));
+            server.app.config = updatedConfig;
 
             return server.app.config;
         });
@@ -59,7 +55,13 @@ module.exports = {
             handler: async (request, h) => {
                 try {
                     const { host, username, directory, debug, port, accessToken } = request.payload;
-                    await server.methods.updateConfig({ hub: { host, username }, log: { directory }, debug, port, dropbox: {accessToken} });
+                    await server.methods.updateConfig({
+                        hub: { host, username },
+                        log: { directory },
+                        debug,
+                        port,
+                        dropbox: { accessToken }
+                    });
                     return h.redirect('/settings');
                 } catch (e) {
                     request.log(['error'], error);

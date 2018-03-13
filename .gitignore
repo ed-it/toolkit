@@ -4,3 +4,4 @@ node_modules
 /.vscode
 client/node_modules
 log_folder
+db

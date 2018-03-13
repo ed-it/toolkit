@@ -44,5 +44,8 @@
   },
   "pkg": {
     "assets": "server/views/**/*"
+  },
+  "nodemonConfig": {
+    "ignore": ["./config.json", "./db/**/*"]
   }
 }
