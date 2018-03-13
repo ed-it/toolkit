@@ -38,8 +38,8 @@ module.exports = (server, options) => {
         server.log(['debug'], 'Attempting to create Status.json watcher');
 
         // Create a file watcher on out status file
-        //fs.watchFile(statusFile, (curr, prev) => {
-        setInterval(() =>{
+        fs.watchFile(statusFile, (curr, prev) => {
+        //setInterval(() =>{
             try {
                 const data = fs.readFileSync(statusFile);
                 if (!data) {
@@ -47,7 +47,7 @@ module.exports = (server, options) => {
                     return // Don't change last state
                 }
                 try {
-                    const result = JSON.parse(data.toString());
+                    const result = JSON.parse(data.toString().trim());
                     return triggerEvent(result);
                 } catch (e) {
                     server.log(['error'], `Unable to parse data ${data.toString()}`);
@@ -57,7 +57,7 @@ module.exports = (server, options) => {
                 server.log(['error'], 'Unable to open file stream, does Status.json exist at this location?');
                 return triggerEvent(defaultStatus);
             }
-        }, 1000);            
-        //});
+        //}, 1000);            
+        });
     }
 }

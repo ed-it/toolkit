@@ -13,13 +13,22 @@ module.exports = {
     register: async (server, options) => {
         server.method('createLogStream', async logFile => {
             server.log(['trace'], 'Creating Stream');
+            const logFileName = logFile.split(Path.sep).pop();
             const logStream = new Tail(logFile, { useWatchFile: true });
 
             logStream.on('line', async chunk => {
                 try {
                     const result = JSON.parse(chunk);
                     server.log(['debug', 'event'], result);
-                    const { event, ...params } = result;
+                    const { event, timestamp, ...params } = result;
+                    const conf = Object.assign({}, server.app.config, { ...server.app.config.log, lastFileSaved: logFileName });
+                    await server.methods.updateConfig(conf);
+                    server.app.collection.insert({
+                        event,
+                        timestamp,
+                        params,
+                        journal: logFileName
+                    });
                     return await server.methods.triggerEvent(event, params);
                 } catch (error) {
                     Bounce.rethrow(error, 'system');
@@ -44,7 +53,7 @@ module.exports = {
                     reject(e);
                 }
             });
-        })
+        });
 
         server.method('getCurrentLogFile', async path => {
             return new Promise(async (resolve, reject) => {

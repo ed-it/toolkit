@@ -1,4 +1,3 @@
-const loki = require('lokijs');
 const Path = require('path');
 const fs = require('fs');
 
@@ -7,18 +6,6 @@ module.exports = {
     version: '1.0.0',
     description: `Import all existing logs into a single database.`,
     register: async (server, options) => {
-        const db = new loki('db/log-entries.json', {
-            autoload: true,
-            autoloadCallback: () => {
-                collection = db.getCollection('log-entries');
-                if (!collection) {
-                    collection = db.addCollection('log-entries');
-                }
-                return collection;
-            },
-            autosave: true,
-            autosaveInterval: 5000
-        });
 
         server.method('getAllLogLines', log => {
             const entries = [];
@@ -37,59 +24,10 @@ module.exports = {
             return entries;
         });
 
-        async function lastFile(conf) {
-            await server.methods.updateConfig(conf);
-        }
-
-        server.route({
-            path: '/api/logs/bounties',
-            method: 'get',
-            handler: async (request, h) => {
-                const pview = collection.addDynamicView('bounties');
-                pview.applyWhere(obj => obj.event === 'Bounty');
-                const results = pview.data();
-
-                const result = results.reduce((reducer, line) => {
-                    const { event, timestamp, params } = line;
-                    // We store per day, so we may need to merge figures
-                    const timeKey = Math.floor(new Date(timestamp).getTime() / (1000 * 60 * 60 * 24));
-                    if (!reducer[timeKey]) {
-                        reducer[timeKey] = {
-                            timestamp,
-                            total: 0,
-                            factions: []
-                        };
-                    }
-
-                    let newFactions = (params.Rewards || []).map(line => ({ name: line.Faction, reward: line.Reward }));
-
-                    newFactions.forEach(line => {
-                        const index = reducer[timeKey].factions.findIndex(f => f.name === line.name);
-                        if (index > -1) {
-                            reducer[timeKey].factions[index].reward += line.reward;
-                        } else {
-                            reducer[timeKey].factions.push(line);
-                        }
-                    });
-
-                    reducer[timeKey] = Object.assign(reducer[timeKey], {
-                        total: (reducer[timeKey].total += params.TotalReward || 0)
-                    });
-                    return reducer;
-                }, {});
-
-                return {
-                    count: Object.keys(result).length,
-                    result
-                };
-            }
-        });
-
         server.route({
             path: '/api/import-logs',
             method: 'get',
             handler: async (request, h) => {
-                const { eventType } = request.query;
                 const { directory, lastFileSaved } = server.app.config.log;
                 const logPath = Path.resolve(directory);
 
@@ -102,45 +40,44 @@ module.exports = {
                     });
                 }
 
-                const logsToImport = logs.splice(indexOfLastImport + 1, logs.length);
+                const logsToImport = logs.splice(indexOfLastImport ? indexOfLastImport + 1 : indexOfLastImport, logs.length);
 
+                let currentLastFile = `${lastFileSaved}`;
                 if (logsToImport.length > 0) {
                     for (let log of logsToImport) {
-                        const logName = log.split('/').pop();
-                        console.log(logName, server.app.config.log.lastFileSaved);
-                        if (logName === server.app.config.log.lastFileSaved) {
+                        currentLastFile = log.split(Path.sep).pop();
+                        
+                        if (currentLastFile === server.app.config.log.lastFileSaved) {
                             return;
                         }
                         const logLines = server.methods.getAllLogLines(log);
 
                         for (let line of logLines) {
                             const { event, timestamp, ...params } = line;
-                            collection.insert({
+                            server.app.collection.insert({
                                 event,
                                 timestamp,
                                 params,
-                                logName
+                                journal: currentLastFile
                             });
                         }
                         const conf = Object.assign({}, server.app.config, {
                             log: {
                                 directory,
-                                lastFileSaved: logName
+                                lastFileSaved: currentLastFile
                             }
                         });
-                        await lastFile(conf);
+                        await server.methods.updateConfig(conf);
                     }
                 } else {
                     console.log('Skipping import');
                 }
 
-                const pview = collection.addDynamicView('stats');
-                pview.applyWhere(obj => obj.event === eventType);
-                const results = pview.data();
+                console.log('Done');
 
                 return {
-                    count: results.length,
-                    results
+                    count: logsToImport.length,
+                    lastFileSaved: currentLastFile
                 };
 
                 // const statistics = allLogLines

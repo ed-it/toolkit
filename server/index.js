@@ -5,6 +5,8 @@ const Vision = require('vision');
 const handlebars = require('handlebars');
 const fs = require('fs');
 const Path = require('path');
+const loki = require('lokijs');
+const Nes = require('nes');
 
 const readFileAsync = promisify(fs.readFile);
 const writeFileAsync = promisify(fs.writeFile);
@@ -16,7 +18,8 @@ const eventTrigger = require('./plugins/events');
 const hueIntegration = require('./plugins/hue-integration');
 const staticEndpoints = require('./plugins/static-endpoints');
 const logImporter = require('./plugins/importer');
-
+const aggregations = require('./plugins/aggregations');
+const market = require('./plugins/market');
 
 const init = async shared => {
     const server = new Hapi.Server({
@@ -34,7 +37,24 @@ const init = async shared => {
 
     Object.keys(shared).forEach(key => (server.app[key] = shared[key]));
 
-    await server.register([Inert, Vision, settings, logReader, logImporter, eventTrigger, hueIntegration, staticEndpoints, statusReader]);
+    const dbPath = Path.resolve(`${server.app.root}`, 'db', 'log-entries.json');
+
+    server.app.db = new loki(dbPath, {
+        autoload: true,
+        autoloadCallback: () => {
+            let collection = server.app.db.getCollection('journal-lines');
+            if (!collection) {
+                collection = server.app.db.addCollection('journal-lines');
+            }
+            server.app.collection = collection;
+            return collection;
+        },
+        autosave: true,
+        autosaveInterval: 5000
+    });
+
+    await server.register(Nes);
+    await server.register([Inert, Vision, settings, logReader, logImporter, eventTrigger, hueIntegration, staticEndpoints, statusReader, aggregations, market]);
 
     server.views({
         engines: { hbs: require('handlebars') },

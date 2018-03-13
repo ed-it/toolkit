@@ -46,6 +46,9 @@
     "assets": "server/views/**/*"
   },
   "nodemonConfig": {
-    "ignore": ["./config.json", "./db/**/*"]
+    "ignore": [
+      "./config.json",
+      "./db/**/*"
+    ]
   }
 }
