@@ -96,7 +96,38 @@ module.exports = {
                         return reducer;
                     }, {});
 
-                const locations = allLogLines.filter(line => line.event === 'Location')
+                const locations = allLogLines
+                    .filter(line => line.event === 'Location')
+                    .map(location => {
+                        const { timestamp, event, ...params } = location;
+                        const result = {
+                            //_params: params,
+                            star: {
+                                system: params.StarSystem,
+                                position: params.StarPos,
+                                population: params.Population,
+                                security: {
+                                    name: params.SystemSecurity,
+                                    nameLocalised: params.SystemSecurity_Localised
+                                }
+                            }
+                        }
+                        if (params.Body) {
+                            result.body = {
+                                name: params.Body,
+                                type: params.BodyType,
+                                bodyId: params.BodyID
+                            }
+                        }
+                        if (params.Docked === true) {
+                            result.station = {
+                                name: params.StationName,
+                                type: params.StationType,
+                                marketId: params.MarketID
+                            }
+                        }
+                        return result;
+                    });
 
                 return { statistics, locations };
                 // const commanders = await server.methods.createDatabase(
