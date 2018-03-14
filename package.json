@@ -15,6 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "@ronomon/opened": "^1.4.0",
+    "bent": "^1.1.0",
     "bounce": "^1.2.0",
     "color-temperature": "^0.2.7",
     "dotenv": "^5.0.1",

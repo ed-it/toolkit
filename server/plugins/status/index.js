@@ -6,29 +6,74 @@ const Opened = require('@ronomon/opened');
 const Bounce = require('bounce');
 const Nes = require('nes');
 
-const statusStream = require('./watch-status-file');
+const { promisify } = require('util');
+
+const readFileAsync = promisify(fs.readFile);
+const parseFlags = require('./parse-flags');
 
 module.exports = {
     name: 'status-reader',
     version: '1.0.0',
     register: async (server, options) => {
+        const { directory } = server.app.config.log;
+        const statusFile = Path.resolve(directory, 'Status.json');
 
         // Register a websocket endpoint
         server.subscription('/stream/status');
 
         // We call this method on init to start a file watcher and trigger server events
-        server.method('createStatusStream', statusStream(server, options));
+
+        server.method('parseStatusFile', async statusFile => {
+            try {
+                const data = await readFileAsync(statusFile);
+                try {
+                    const result = JSON.parse(data.toString().trim());
+                    const { event, timestamp, ...params } = result;
+                    const state = { event, timestamp, params: {} };
+
+                    if (params && Object.keys(params).length > 0) {
+                        const [sys, eng, wep] = params.Pips ? params.Pips : [4, 4, 4];
+                        state.params.pips = { sys: sys / 2, eng: eng / 2, wep: wep / 2, raw: [sys, eng, wep] };
+                        state.params.status = parseFlags(params.Flags);
+                        state.params.position = {
+                            longLat: [params.Longitude || 0, params.Latitude || 0],
+                            altitude: params.Altitude || 0,
+                            heading: params.Heading || 0
+                        };
+                    }
+                    return state;
+                } catch (e) {
+                    throw e;
+                }
+            } catch (e) {
+                throw e;
+            }
+        });
+
+        server.method('createStatusStream', async statusFile => {
+            fs.watchFile(statusFile, async (curr, prev) => {
+                try {
+                    let result = await server.methods.parseStatusFile(statusFile);
+                    if (!result) {
+                        result = defaultStatus;
+                    }
+                    await server.broadcast(result);
+                } catch (e) {
+                    server.log(['error', e]);
+                }
+            });
+        });
 
         /**
          * Static page for viewing the status
          */
         server.route({
             method: 'GET',
-            path: '/status',
+            path: '/api/status',
             handler: async (request, h) => {
                 try {
-                    const { config } = request.server.app;
-                    return h.view(`status/views/status`, config);
+                    const result = await server.methods.parseStatusFile(statusFile);
+                    return result;
                 } catch (error) {
                     request.log(['error'], error);
                     Bounce.rethrow(error, 'system');
@@ -39,12 +84,9 @@ module.exports = {
 
         const init = async () => {
             try {
-                const { directory } = server.app.config.log;
-                const logPath = Path.resolve(directory);
                 server.log(['debug'], 'Status Plugin');
-                const statusFile = Path.join(logPath, 'Status.json');
                 server.log(['debug'], `Status File: ${statusFile}`);
-                return server.methods.createStatusStream(statusFile);
+                return await server.methods.createStatusStream(statusFile);
             } catch (error) {
                 server.log(['error'], error);
                 Bounce.rethrow(error, 'system');

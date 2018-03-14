@@ -5,7 +5,7 @@ const glob = require('glob-promise');
 const Opened = require('@ronomon/opened');
 const Bounce = require('bounce');
 
-const marketStream = require('./watch-market-file');
+const marketStream = require('./market-stream');
 const parseMarketFile = require('./parse-market');
 
 module.exports = {
@@ -17,25 +17,7 @@ module.exports = {
 
         // We call this method on init to start a file watcher and trigger server events
         server.method('createMarketStream', marketStream(server, options));
-
-        /**
-         * Static page for viewing the status
-         */
-        server.route({
-            method: 'GET',
-            path: '/market',
-            handler: async (request, h) => {
-                try {
-                    const { config } = request.server.app;
-                    return h.view(`market/views/market`, config);
-                } catch (error) {
-                    request.log(['error'], error);
-                    Bounce.rethrow(error, 'system');
-                    return h.view('shared/templates/error', { error });
-                }
-            }
-        });
-
+        
         server.route({
             method: 'GET',
             path: '/api/market',

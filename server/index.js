@@ -20,6 +20,7 @@ const staticEndpoints = require('./plugins/static-endpoints');
 const logImporter = require('./plugins/importer');
 const aggregations = require('./plugins/aggregations');
 const market = require('./plugins/market');
+const edsm = require('./plugins/edsm');
 
 const init = async shared => {
     const server = new Hapi.Server({
@@ -57,7 +58,7 @@ const init = async shared => {
     });
 
     await server.register(Nes);
-    await server.register([Inert, Vision, settings, logReader, logImporter, eventTrigger, hueIntegration, staticEndpoints, statusReader, aggregations, market]);
+    await server.register([Inert, Vision, settings, logReader, logImporter, eventTrigger, hueIntegration, staticEndpoints, statusReader, aggregations, market, edsm]);
 
     server.views({
         engines: { hbs: require('handlebars') },

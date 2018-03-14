@@ -5,21 +5,86 @@ const fs = require('fs');
 module.exports = {
     name: 'aggregations',
     version: '1.0.0',
-    description: `Import all existing logs into a single database.`,
+    description: `Methods for aggregation of data`,
     register: async (server, options) => {
+        server.method('getLastKnownLocation', () => {
+            const view = server.app.collection.addDynamicView('lastKnownLocation');
+            view.applyWhere(obj => ['ApproachBody', 'Docked', 'FSDJump', 'SupercruiseEntry', 'SupercruiseExit'].includes(obj.event));
+            view.applySimpleSort('timestamp');
+            let lastKnownLocation = view.data().reduce((a, b) => (new Date(a.timestamp).getTime() > new Date(b.timestamp).getTime() ? a : b));
+            if (!lastKnownLocation) {
+                lastKnownLocation = {};
+            }
+            return lastKnownLocation;
+        });
+
+        server.method('getCurrentShip', () => {
+            const view = server.app.collection.addDynamicView('lastLoadout');
+            view.applyWhere(obj => obj.event === 'Loadout');
+            view.applySimpleSort('timestamp');
+            let lastLoadout = view.data().reduce((a, b) => (new Date(a.timestamp).getTime() > new Date(b.timestamp).getTime() ? a : b));
+            if (!lastLoadout) {
+                lastLoadout = {};
+            }
+            return lastLoadout;
+        });
+
+        server.method('getMaterials', () => {
+            const view = server.app.collection.addDynamicView('materials');
+            view.applyWhere(obj => ['Materials', 'MaterialCollected'].includes(obj.event));
+            view.applySimpleSort('timestamp');
+            const result = view.data().reverse();
+
+            const materialIndex = result.findIndex(item => item.event === 'Materials');
+            const toProcess = result.slice(0, materialIndex + 1);
+
+            const materials = toProcess.find(item => item.event === 'Materials');
+            const materialsCollected = toProcess.filter(item => item.event === 'MaterialCollected');
+
+            const materialObj = Object.keys(materials.params).reduce((reducer, param) => {
+                const mKey = param.toLowerCase();
+                const resources = materials.params[param];
+                if (!reducer[mKey]) {
+                    reducer[mKey] = {
+                        key: mKey,
+                        name: param,
+                        resources
+                    };
+                }
+                return reducer;
+            }, {});
+
+            materialsCollected.forEach(material => {
+                const key = material.Category.toLowerCase();
+                if (materialObj[key]) {
+                    const item = materialObj[key].resources.find(item => item.Name === material.Name);
+                    item.Count += material.Count;
+                }
+            });
+
+            return materialObj;
+        });
+
         server.route({
-            path: '/api/logs/last-known-location',
+            path: '/api/location',
             method: 'get',
             handler: async (request, h) => {
-                const pview = server.app.collection.addDynamicView('lastKnownSystem');
-                pview.applyWhere(obj => ['ApproachBody', 'Docked', 'FSDJump', 'SupercruiseEntry', 'SupercruiseExit'].includes(obj.event));
-                const results = pview.data();
+                const location = await server.methods.getLastKnownLocation();
+                console.log(location);
+                location.bodies = await server.methods.getSystemBodies(location.params.StarSystem);
+                location.stations = await server.methods.getSystemStations(location.params.StarSystem);
+                location.factions = await server.methods.getSystemFactions(location.params.StarSystem);
+                location.traffic = await server.methods.getSystemTraffic(location.params.StarSystem);
+                location.deaths = await server.methods.getSystemDeaths(location.params.StarSystem);
+                return location;
+            }
+        });
 
-                const lastKnownLocation = results.reduce(function(a, b) {
-                    return new Date(a.timestamp).getTime() > new Date(b.timestamp).getTime() ? a : b;
-                });
-
-                return lastKnownLocation;
+        server.route({
+            path: '/api/materials',
+            method: 'get',
+            handler: async (request, h) => {
+                return server.methods.getMaterials();
             }
         });
 
@@ -46,7 +111,7 @@ module.exports = {
                     } else {
                         timeKey = 'all';
                     }
-                    
+
                     if (!reducer[timeKey]) {
                         reducer[timeKey] = {
                             timestamp,

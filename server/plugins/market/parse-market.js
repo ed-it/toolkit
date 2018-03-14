@@ -1,11 +1,15 @@
 const fs = require('fs');
+const { promisify } = require('util');
+
+const readFileAsync = promisify(fs.readFile);
 
 module.exports = async function(marketFile) {
     try {
-        const data = fs.readFileSync(marketFile);
+        const data = await readFileAsync(marketFile);
         try {
             const result = JSON.parse(data.toString().trim());
-            const byCategory = result.Items.reduce((reducer, line) => {
+
+            const categories = result.Items.reduce((reducer, line) => {
                 if (!reducer[line.Category_Localised]) {
                     reducer[line.Category_Localised] = {
                         name: line.Category_Localised,
@@ -16,11 +20,14 @@ module.exports = async function(marketFile) {
                 return reducer;
             }, {});
             return {
-                id: result.MarketID,
+                event: 'Market',
                 timestamp: result.timestamp,
-                systemName: result.StarSystem,
-                stationName: result.StationName,
-                results: byCategory
+                params: {
+                    id: result.MarketID,
+                    systemName: result.StarSystem,
+                    stationName: result.StationName,
+                    categories
+                }
             };
         } catch (e) {
             throw e;
