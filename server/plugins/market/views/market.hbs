@@ -101,8 +101,8 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>${data.system}</td>
-                        <td>${data.station}</td>
+                        <td>${data.systemName}</td>
+                        <td>${data.stationName}</td>
                         <td>${new Date(data.timestamp).toLocaleString()}</td>
                     </tr>
                 </tbody>
@@ -144,7 +144,7 @@
                                     <th>Stock/Demand</th>
                                 </tr>
                             </thead>
-                            <tbody>${marketCategory.items.map(item => `<tr>
+                            <tbody>${marketCategory.commodities.map(item => `<tr>
                                 <td>${item.Name_Localised}</td>
                                 <td>${item.BuyPrice}</td>
                                 <td>${item.SellPrice}</td>
@@ -157,9 +157,7 @@
             }).join('');
 
             divContent = `${divContent}${tabs}`;
-            console.log(divContent);
             marketContent.innerHTML = divContent;
-            console.log(marketContent);
             marketDataContainer.appendChild(marketContent);
         }
 

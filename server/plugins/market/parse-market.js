@@ -6,20 +6,20 @@ module.exports = async function(marketFile) {
         try {
             const result = JSON.parse(data.toString().trim());
             const byCategory = result.Items.reduce((reducer, line) => {
-                if (!reducer[line.Category]) {
-                    reducer[line.Category] = {
+                if (!reducer[line.Category_Localised]) {
+                    reducer[line.Category_Localised] = {
                         name: line.Category_Localised,
-                        items: []
+                        commodities: []
                     };
                 }
-                reducer[line.Category].items.push(line);
+                reducer[line.Category_Localised].commodities.push(line);
                 return reducer;
             }, {});
             return {
                 id: result.MarketID,
                 timestamp: result.timestamp,
-                system: result.StarSystem,
-                station: result.StationName,
+                systemName: result.StarSystem,
+                stationName: result.StationName,
                 results: byCategory
             };
         } catch (e) {

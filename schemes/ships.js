@@ -27,7 +27,8 @@ const shipModels = {
         'Type6',
         'Type7',
         'Type9',
-        'Type10'
+        'Type9_Military',
+        'TypeX'
     ],
     'Zorgon Peterson': ['Adder', 'FerDeLance', 'Hauler'],
     'Saud Kruger': ['Dolphin', 'Orca', 'BelugaLiner']

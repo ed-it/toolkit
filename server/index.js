@@ -25,6 +25,9 @@ const init = async shared => {
     const server = new Hapi.Server({
         port: shared.config.port || 12342,
         routes: {
+            cors: {
+                origin: ['*']
+            },
             files: {
                 relativeTo: `${__dirname}/static`
             }
