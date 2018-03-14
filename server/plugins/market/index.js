@@ -39,9 +39,8 @@ module.exports = {
             try {
                 const { directory } = server.app.config.log;
                 const logPath = Path.resolve(directory);
-                server.log(['debug'], 'Status Plugin');
                 const marketFile = Path.join(logPath, 'Market.json');
-                server.log(['debug'], `Status File: ${marketFile}`);
+                server.log(['debug'], `Market File: ${marketFile}`);
                 return server.methods.createMarketStream(marketFile);
             } catch (error) {
                 server.log(['error'], error);

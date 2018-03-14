@@ -23,7 +23,7 @@ module.exports = {
                     const { event, timestamp, ...params } = result;
                     const conf = Object.assign({}, server.app.config, { ...server.app.config.log, lastFileSaved: logFileName });
                     await server.methods.updateConfig(conf);
-                    server.app.collection.insert({
+                    server.app.journal.insert({
                         event,
                         timestamp,
                         params,

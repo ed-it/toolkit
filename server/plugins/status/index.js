@@ -84,7 +84,6 @@ module.exports = {
 
         const init = async () => {
             try {
-                server.log(['debug'], 'Status Plugin');
                 server.log(['debug'], `Status File: ${statusFile}`);
                 return await server.methods.createStatusStream(statusFile);
             } catch (error) {

@@ -50,7 +50,7 @@ const init = async shared => {
             if (!collection) {
                 collection = server.app.db.addCollection('journal-lines');
             }
-            server.app.collection = collection;
+            server.app.journal = collection;
             return collection;
         },
         autosave: true,

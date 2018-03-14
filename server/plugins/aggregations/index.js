@@ -8,7 +8,7 @@ module.exports = {
     description: `Methods for aggregation of data`,
     register: async (server, options) => {
         server.method('getLastKnownLocation', () => {
-            const view = server.app.collection.addDynamicView('lastKnownLocation');
+            const view = server.app.journal.addDynamicView('lastKnownLocation');
             view.applyWhere(obj => ['ApproachBody', 'Docked', 'FSDJump', 'SupercruiseEntry', 'SupercruiseExit'].includes(obj.event));
             view.applySimpleSort('timestamp');
             let lastKnownLocation = view.data().reduce((a, b) => (new Date(a.timestamp).getTime() > new Date(b.timestamp).getTime() ? a : b));
@@ -19,7 +19,7 @@ module.exports = {
         });
 
         server.method('getCurrentShip', () => {
-            const view = server.app.collection.addDynamicView('lastLoadout');
+            const view = server.app.journal.addDynamicView('lastLoadout');
             view.applyWhere(obj => obj.event === 'Loadout');
             view.applySimpleSort('timestamp');
             let lastLoadout = view.data().reduce((a, b) => (new Date(a.timestamp).getTime() > new Date(b.timestamp).getTime() ? a : b));
@@ -30,7 +30,7 @@ module.exports = {
         });
 
         server.method('getMaterials', () => {
-            const view = server.app.collection.addDynamicView('materials');
+            const view = server.app.journal.addDynamicView('materials');
             view.applyWhere(obj => ['Materials', 'MaterialCollected'].includes(obj.event));
             view.applySimpleSort('timestamp');
             const result = view.data().reverse();
@@ -94,7 +94,7 @@ module.exports = {
             handler: async (request, h) => {
                 const { by } = request.query;
 
-                const view = server.app.collection.addDynamicView('bounties');
+                const view = server.app.journal.addDynamicView('bounties');
                 view.applyWhere(obj => obj.event === 'Bounty');
                 const results = view.data();
 

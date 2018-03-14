@@ -54,7 +54,7 @@ module.exports = {
 
                         for (let line of logLines) {
                             const { event, timestamp, ...params } = line;
-                            server.app.collection.insert({
+                            server.app.journal.insert({
                                 event,
                                 timestamp,
                                 params,
