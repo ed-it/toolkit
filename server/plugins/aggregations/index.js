@@ -18,6 +18,46 @@ module.exports = {
             return lastKnownLocation;
         });
 
+        server.method('getAllFSDJumps', systemByCount => {
+            console.log('All FSD Jumps');
+            const view = server.app.journal.addDynamicView('allFSDJumps');
+            view.applyWhere(obj => obj.event === 'FSDJump');
+            view.applySimpleSort('timestamp');
+            const result = view.data();
+
+            if (systemByCount) {
+                return result
+                    .map(({ event, timestamp, params }) => {
+                        return {
+                            starSystem: params.StarSystem,
+                            timestamp,
+                            jump: {
+                                distance: params.JumpDist,
+                                pos: params.StarPos
+                            },
+                            fuel: {
+                                used: params.FuelUsed,
+                                level: params.FuelLevel
+                            }
+                        };
+                    })
+                    .reduce((reducer, jump) => {
+                        if (!reducer[jump.starSystem]) {
+                            reducer[jump.starSystem] = { starSystem: jump.starSystem, jumpCount: 0, jumps: [] };
+                        }
+                        reducer[jump.starSystem].jumpCount++;
+                        reducer[jump.starSystem].jumps.push({
+                            timestamp: jump.timestamp,
+                            jump: jump.jump,
+                            fuel: jump.fuel
+                        });
+                        return reducer;
+                    }, {});
+            } else {
+                return result;
+            }
+        });
+
         server.method('getCurrentShip', () => {
             const view = server.app.journal.addDynamicView('lastLoadout');
             view.applyWhere(obj => obj.event === 'Loadout');
@@ -85,6 +125,15 @@ module.exports = {
             method: 'get',
             handler: async (request, h) => {
                 return server.methods.getMaterials();
+            }
+        });
+
+        server.route({
+            path: '/api/all-fsd-jumps',
+            method: 'get',
+            handler: async (request, h) => {
+                const { byCount } = request.query;
+                return server.methods.getAllFSDJumps(byCount);
             }
         });
 
