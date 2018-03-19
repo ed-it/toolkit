@@ -40,6 +40,8 @@ module.exports = {
                             altitude: params.Altitude || 0,
                             heading: params.Heading || 0
                         };
+                        state.params.currentShip = server.methods.getCurrentShip();
+                        state.params.currentLocation = server.methods.getLastKnownLocation();
                     }
                     return state;
                 } catch (e) {
