@@ -9,25 +9,60 @@ module.exports = {
     register: async (server, options) => {
         server.method('getLastKnownLocation', () => {
             const view = server.app.journal.addDynamicView('lastKnownLocation');
-            view.applyWhere(obj => ['ApproachBody', 'Docked', 'FSDJump', 'SupercruiseEntry', 'SupercruiseExit'].includes(obj.event));
+            view.applyWhere(obj =>
+                [
+                    'ApproachBody',
+                    'Docked',
+                    'FSDJump',
+                    'SupercruiseEntry',
+                    'SupercruiseExit'
+                ].includes(obj.event)
+            );
             view.applySimpleSort('timestamp');
-            let lastKnownLocation = view.data().reduce((a, b) => (new Date(a.timestamp).getTime() > new Date(b.timestamp).getTime() ? a : b));
+            let lastKnownLocation = view
+                .data()
+                .reduce(
+                    (a, b) =>
+                        new Date(a.timestamp).getTime() >
+                        new Date(b.timestamp).getTime()
+                            ? a
+                            : b
+                );
             if (!lastKnownLocation) {
                 lastKnownLocation = {};
             }
             return lastKnownLocation;
         });
 
-        server.method('getAllFSDJumps', systemByCount => {
+        server.method('getAllFSDJumps', options => {
             console.log('All FSD Jumps');
+            const { byCount, searchFilter } = options;
+            let { page, display } = options;
+            if (!page) {
+                page = 1;
+            }
+            if (!display) {
+                display = 50;
+            }
+
             const view = server.app.journal.addDynamicView('allFSDJumps');
             view.applyWhere(obj => obj.event === 'FSDJump');
             view.applySimpleSort('timestamp');
-            const result = view.data();
 
-            if (systemByCount) {
-                return result
-                    .map(({ event, timestamp, params }) => {
+            const totalRecords = view.count();
+
+            if (searchFilter) {
+                view.applyFilter(obj =>
+                    obj.params.StarSystem.toLowerCase().includes(
+                        this.searchFilter.toLowerCase()
+                    )
+                );
+            }
+
+            let result;
+            if (byCount) {
+                result = view.chain().mapReduce(
+                    ({ event, timestamp, params }) => {
                         return {
                             starSystem: params.StarSystem,
                             timestamp,
@@ -40,29 +75,90 @@ module.exports = {
                                 level: params.FuelLevel
                             }
                         };
-                    })
-                    .reduce((reducer, jump) => {
-                        if (!reducer[jump.starSystem]) {
-                            reducer[jump.starSystem] = { starSystem: jump.starSystem, jumpCount: 0, jumps: [] };
-                        }
-                        reducer[jump.starSystem].jumpCount++;
-                        reducer[jump.starSystem].jumps.push({
-                            timestamp: jump.timestamp,
-                            jump: jump.jump,
-                            fuel: jump.fuel
-                        });
-                        return reducer;
-                    }, {});
+                    },
+                    values =>
+                        values.reduce((reducer, jump) => {
+                            if (!reducer[jump.starSystem]) {
+                                reducer[jump.starSystem] = {
+                                    starSystem: jump.starSystem,
+                                    jumpCount: 0,
+                                    jumps: []
+                                };
+                            }
+                            reducer[jump.starSystem].jumpCount++;
+                            reducer[jump.starSystem].jumps.push({
+                                timestamp: jump.timestamp,
+                                jump: jump.jump,
+                                fuel: jump.fuel
+                            });
+                            return reducer;
+                        }, {}).data()
+                );
             } else {
-                return result;
+                result = view.data();
             }
+            console.log(result.length);
+            if (searchFilter) {
+                result = result.slice(0, display);
+            } else {
+                result = result.slice((page - 1) * display, page * display);
+            }
+            console.log(result.length);
+            return {
+                totalRecords,
+                result
+            };
+
+            // if (byCount) {
+            //     return result
+            //         .map(({ event, timestamp, params }) => {
+            //             return {
+            //                 starSystem: params.StarSystem,
+            //                 timestamp,
+            //                 jump: {
+            //                     distance: params.JumpDist,
+            //                     pos: params.StarPos
+            //                 },
+            //                 fuel: {
+            //                     used: params.FuelUsed,
+            //                     level: params.FuelLevel
+            //                 }
+            //             };
+            //         })
+            //         .reduce((reducer, jump) => {
+            //             if (!reducer[jump.starSystem]) {
+            //                 reducer[jump.starSystem] = {
+            //                     starSystem: jump.starSystem,
+            //                     jumpCount: 0,
+            //                     jumps: []
+            //                 };
+            //             }
+            //             reducer[jump.starSystem].jumpCount++;
+            //             reducer[jump.starSystem].jumps.push({
+            //                 timestamp: jump.timestamp,
+            //                 jump: jump.jump,
+            //                 fuel: jump.fuel
+            //             });
+            //             return reducer;
+            //         }, {});
+            // } else {
+            //     return result;
+            // }
         });
 
         server.method('getCurrentShip', () => {
             const view = server.app.journal.addDynamicView('lastLoadout');
             view.applyWhere(obj => obj.event === 'Loadout');
             view.applySimpleSort('timestamp');
-            let lastLoadout = view.data().reduce((a, b) => (new Date(a.timestamp).getTime() > new Date(b.timestamp).getTime() ? a : b));
+            let lastLoadout = view
+                .data()
+                .reduce(
+                    (a, b) =>
+                        new Date(a.timestamp).getTime() >
+                        new Date(b.timestamp).getTime()
+                            ? a
+                            : b
+                );
             if (!lastLoadout) {
                 lastLoadout = {};
             }
@@ -71,33 +167,46 @@ module.exports = {
 
         server.method('getMaterials', () => {
             const view = server.app.journal.addDynamicView('materials');
-            view.applyWhere(obj => ['Materials', 'MaterialCollected'].includes(obj.event));
+            view.applyWhere(obj =>
+                ['Materials', 'MaterialCollected'].includes(obj.event)
+            );
             view.applySimpleSort('timestamp');
             const result = view.data().reverse();
 
-            const materialIndex = result.findIndex(item => item.event === 'Materials');
+            const materialIndex = result.findIndex(
+                item => item.event === 'Materials'
+            );
             const toProcess = result.slice(0, materialIndex + 1);
 
-            const materials = toProcess.find(item => item.event === 'Materials');
-            const materialsCollected = toProcess.filter(item => item.event === 'MaterialCollected');
+            const materials = toProcess.find(
+                item => item.event === 'Materials'
+            );
+            const materialsCollected = toProcess.filter(
+                item => item.event === 'MaterialCollected'
+            );
 
-            const materialObj = Object.keys(materials.params).reduce((reducer, param) => {
-                const mKey = param.toLowerCase();
-                const resources = materials.params[param];
-                if (!reducer[mKey]) {
-                    reducer[mKey] = {
-                        key: mKey,
-                        name: param,
-                        resources
-                    };
-                }
-                return reducer;
-            }, {});
+            const materialObj = Object.keys(materials.params).reduce(
+                (reducer, param) => {
+                    const mKey = param.toLowerCase();
+                    const resources = materials.params[param];
+                    if (!reducer[mKey]) {
+                        reducer[mKey] = {
+                            key: mKey,
+                            name: param,
+                            resources
+                        };
+                    }
+                    return reducer;
+                },
+                {}
+            );
 
             materialsCollected.forEach(material => {
                 const key = material.Category.toLowerCase();
                 if (materialObj[key]) {
-                    const item = materialObj[key].resources.find(item => item.Name === material.Name);
+                    const item = materialObj[key].resources.find(
+                        item => item.Name === material.Name
+                    );
                     item.Count += material.Count;
                 }
             });
@@ -111,11 +220,21 @@ module.exports = {
             handler: async (request, h) => {
                 const location = await server.methods.getLastKnownLocation();
                 console.log(location);
-                location.bodies = await server.methods.getSystemBodies(location.params.StarSystem);
-                location.stations = await server.methods.getSystemStations(location.params.StarSystem);
-                location.factions = await server.methods.getSystemFactions(location.params.StarSystem);
-                location.traffic = await server.methods.getSystemTraffic(location.params.StarSystem);
-                location.deaths = await server.methods.getSystemDeaths(location.params.StarSystem);
+                location.bodies = await server.methods.getSystemBodies(
+                    location.params.StarSystem
+                );
+                location.stations = await server.methods.getSystemStations(
+                    location.params.StarSystem
+                );
+                location.factions = await server.methods.getSystemFactions(
+                    location.params.StarSystem
+                );
+                location.traffic = await server.methods.getSystemTraffic(
+                    location.params.StarSystem
+                );
+                location.deaths = await server.methods.getSystemDeaths(
+                    location.params.StarSystem
+                );
                 return location;
             }
         });
@@ -132,8 +251,7 @@ module.exports = {
             path: '/api/all-fsd-jumps',
             method: 'get',
             handler: async (request, h) => {
-                const { byCount } = request.query;
-                return server.methods.getAllFSDJumps(byCount);
+                return server.methods.getAllFSDJumps(request.query);
             }
         });
 
@@ -152,11 +270,19 @@ module.exports = {
                     // We store per day, so we may need to merge figures
                     let timeKey;
                     if (by === 'hour') {
-                        timeKey = Math.floor(new Date(timestamp).getTime() / (1000 * 60 * 60));
+                        timeKey = Math.floor(
+                            new Date(timestamp).getTime() / (1000 * 60 * 60)
+                        );
                     } else if (by === 'day') {
-                        timeKey = Math.floor(new Date(timestamp).getTime() / (1000 * 60 * 60 * 24));
+                        timeKey = Math.floor(
+                            new Date(timestamp).getTime() /
+                                (1000 * 60 * 60 * 24)
+                        );
                     } else if (by === 'week') {
-                        timeKey = Math.floor(new Date(timestamp).getTime() / (1000 * 60 * 60 * 24 * 7));
+                        timeKey = Math.floor(
+                            new Date(timestamp).getTime() /
+                                (1000 * 60 * 60 * 24 * 7)
+                        );
                     } else {
                         timeKey = 'all';
                     }
@@ -169,19 +295,26 @@ module.exports = {
                         };
                     }
 
-                    let newFactions = (params.Rewards || []).map(line => ({ name: line.Faction, reward: line.Reward }));
+                    let newFactions = (params.Rewards || []).map(line => ({
+                        name: line.Faction,
+                        reward: line.Reward
+                    }));
 
                     newFactions.forEach(line => {
-                        const index = reducer[timeKey].factions.findIndex(f => f.name === line.name);
+                        const index = reducer[timeKey].factions.findIndex(
+                            f => f.name === line.name
+                        );
                         if (index > -1) {
-                            reducer[timeKey].factions[index].reward += line.reward;
+                            reducer[timeKey].factions[index].reward +=
+                                line.reward;
                         } else {
                             reducer[timeKey].factions.push(line);
                         }
                     });
 
                     reducer[timeKey] = Object.assign(reducer[timeKey], {
-                        total: (reducer[timeKey].total += params.TotalReward || 0)
+                        total: (reducer[timeKey].total +=
+                            params.TotalReward || 0)
                     });
                     return reducer;
                 }, {});
