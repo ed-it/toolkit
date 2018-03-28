@@ -2,23 +2,57 @@ const loki = require('lokijs');
 const Path = require('path');
 const fs = require('fs');
 
+function dynamicViewData(server, name, find, sort) {
+    const view = server.app.journal.addDynamicView(name);
+    find.forEach(findFn => view.applyWhere(findFn));
+
+    if (sort === 'timestamp') {
+        view.applySimpleSort('timestamp');
+    } else if (sort === 'systemName') {
+        view.applySort((item1, item2) => {
+            if (
+                item1.params.StarSystem.toLowerCase() ===
+                item2.params.StarSystem.toLowerCase()
+            )
+                return 0;
+            if (
+                item1.params.StarSystem.toLowerCase() >
+                item2.params.StarSystem.toLowerCase()
+            )
+                return 1;
+            if (
+                item1.params.StarSystem.toLowerCase() <
+                item2.params.StarSystem.toLowerCase()
+            )
+                return -1;
+        });
+    }
+
+    return view;
+}
+
 module.exports = {
     name: 'aggregations',
     version: '1.0.0',
     description: `Methods for aggregation of data`,
     register: async (server, options) => {
         server.method('getLastKnownLocation', () => {
-            const view = server.app.journal.addDynamicView('lastKnownLocation');
-            view.applyWhere(obj =>
+            const view = dynamicViewData(
+                server,
+                'lastKnownLocation',
                 [
-                    'ApproachBody',
-                    'Docked',
-                    'FSDJump',
-                    'SupercruiseEntry',
-                    'SupercruiseExit'
-                ].includes(obj.event)
+                    obj =>
+                        [
+                            'ApproachBody',
+                            'Docked',
+                            'FSDJump',
+                            'SupercruiseEntry',
+                            'SupercruiseExit'
+                        ].includes(obj.event)
+                ],
+                orderBy || 'timestamp'
             );
-            view.applySimpleSort('timestamp');
+
             let lastKnownLocation = view
                 .data()
                 .reduce(
@@ -35,36 +69,37 @@ module.exports = {
         });
 
         server.method('getSystemJournal', options => {
-            console.log('All FSD Jumps');
-            const { searchFilter } = options;
-            let { page, display } = options;
+            const { searchQuery, orderBy } = options;
+            let { page, limit } = options;
             if (!page) {
                 page = 1;
             }
-            if (!display) {
-                display = 50;
+            if (!limit) {
+                limit = 50;
             }
-            console.log(searchFilter);
-
-            const view = server.app.journal.addDynamicView('allFSDJumps');
-            view.applyWhere(obj => obj.event === 'FSDJump');
-            view.applySimpleSort('timestamp');
-
-            if (searchFilter) {
-                view.applyWhere(obj =>
+            const find = [obj => obj.event === 'FSDJump'];
+            if (searchQuery) {
+                find.push(obj =>
                     obj.params.StarSystem.toLowerCase().includes(
-                        searchFilter.toLowerCase()
+                        searchQuery.toLowerCase()
                     )
                 );
             }
 
+            const view = dynamicViewData(
+                server,
+                'allFSDJumps',
+                find,
+                orderBy || 'timestamp'
+            );
+
             let result = view.data();
             const totalRecords = result.length;
 
-            if (searchFilter) {
-                result = result.slice(0, display);
+            if (searchQuery) {
+                result = result.slice(0, limit);
             } else {
-                result = result.slice((page - 1) * display, page * display);
+                result = result.slice((page - 1) * limit, page * limit);
             }
             return {
                 totalRecords,
@@ -73,27 +108,31 @@ module.exports = {
         });
 
         server.method('getSystemList', options => {
-            const { searchFilter } = options;
-            let { page, display } = options;
+            const { searchQuery, orderBy } = options;
+            let { page, limit } = options;
             if (!page) {
                 page = 1;
             }
-            if (!display) {
-                display = 50;
+            if (!limit) {
+                limit = 50;
             }
 
-            const view = server.app.journal.addDynamicView('allFSDJumps');
-            view.applyWhere(obj => obj.event === 'FSDJump');
-            view.applySimpleSort('timestamp');
-
-            let result;
-            if (searchFilter) {
-                view.applyWhere(obj =>
+            const find = [obj => obj.event === 'FSDJump'];
+            if (searchQuery) {
+                find.push(obj =>
                     obj.params.StarSystem.toLowerCase().includes(
-                        searchFilter.toLowerCase()
+                        searchQuery.toLowerCase()
                     )
                 );
             }
+
+            const view = dynamicViewData(
+                server,
+                'allFSDJumps',
+                find,
+                orderBy || 'timestamp'
+            );
+
             result = view.mapReduce(
                 ({ event, timestamp, params }) => {
                     return {
@@ -132,10 +171,10 @@ module.exports = {
             result = Object.keys(result).map(key => result[key]);
             const totalRecords = result.length;
 
-            if (searchFilter) {
-                result = result.slice(0, display);
+            if (searchQuery) {
+                result = result.slice(0, limit);
             } else {
-                result = result.slice((page - 1) * display, page * display);
+                result = result.slice((page - 1) * limit, page * limit);
             }
             return {
                 totalRecords,
@@ -146,7 +185,7 @@ module.exports = {
         server.method('getCurrentShip', () => {
             const view = server.app.journal.addDynamicView('lastLoadout');
             view.applyWhere(obj => obj.event === 'Loadout');
-            view.applySimpleSort('timestamp');
+            view.applySimpleSort(orderBy);
             let lastLoadout = view
                 .data()
                 .reduce(
@@ -167,7 +206,7 @@ module.exports = {
             view.applyWhere(obj =>
                 ['Materials', 'MaterialCollected'].includes(obj.event)
             );
-            view.applySimpleSort('timestamp');
+            view.applySimpleSort(orderBy);
             const result = view.data().reverse();
 
             const materialIndex = result.findIndex(
