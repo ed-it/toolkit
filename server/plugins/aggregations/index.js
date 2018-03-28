@@ -34,9 +34,46 @@ module.exports = {
             return lastKnownLocation;
         });
 
-        server.method('getAllFSDJumps', options => {
+        server.method('getSystemJournal', options => {
             console.log('All FSD Jumps');
-            const { byCount, searchFilter } = options;
+            const { searchFilter } = options;
+            let { page, display } = options;
+            if (!page) {
+                page = 1;
+            }
+            if (!display) {
+                display = 50;
+            }
+            console.log(searchFilter);
+
+            const view = server.app.journal.addDynamicView('allFSDJumps');
+            view.applyWhere(obj => obj.event === 'FSDJump');
+            view.applySimpleSort('timestamp');
+
+            if (searchFilter) {
+                view.applyWhere(obj =>
+                    obj.params.StarSystem.toLowerCase().includes(
+                        searchFilter.toLowerCase()
+                    )
+                );
+            }
+
+            let result = view.data();
+            const totalRecords = result.length;
+
+            if (searchFilter) {
+                result = result.slice(0, display);
+            } else {
+                result = result.slice((page - 1) * display, page * display);
+            }
+            return {
+                totalRecords,
+                result
+            };
+        });
+
+        server.method('getSystemList', options => {
+            const { searchFilter } = options;
             let { page, display } = options;
             if (!page) {
                 page = 1;
@@ -49,101 +86,61 @@ module.exports = {
             view.applyWhere(obj => obj.event === 'FSDJump');
             view.applySimpleSort('timestamp');
 
-            const totalRecords = view.count();
-
+            let result;
             if (searchFilter) {
-                view.applyFilter(obj =>
+                view.applyWhere(obj =>
                     obj.params.StarSystem.toLowerCase().includes(
-                        this.searchFilter.toLowerCase()
+                        searchFilter.toLowerCase()
                     )
                 );
             }
+            result = view.mapReduce(
+                ({ event, timestamp, params }) => {
+                    return {
+                        starSystem: params.StarSystem,
+                        params: params,
+                        timestamp,
+                        jump: {
+                            distance: params.JumpDist,
+                            pos: params.StarPos
+                        },
+                        fuel: {
+                            used: params.FuelUsed,
+                            level: params.FuelLevel
+                        }
+                    };
+                },
+                values =>
+                    values.reduce((reducer, jump) => {
+                        if (!reducer[jump.starSystem]) {
+                            reducer[jump.starSystem] = {
+                                starSystem: jump.starSystem,
+                                params: jump.params,
+                                jumpCount: 0,
+                                jumps: []
+                            };
+                        }
+                        reducer[jump.starSystem].jumpCount++;
+                        reducer[jump.starSystem].jumps.push({
+                            timestamp: jump.timestamp,
+                            jump: jump.jump,
+                            fuel: jump.fuel
+                        });
+                        return reducer;
+                    }, {})
+            );
+            result = Object.keys(result).map(key => result[key]);
+            const totalRecords = result.length;
 
-            let result;
-            if (byCount) {
-                result = view.chain().mapReduce(
-                    ({ event, timestamp, params }) => {
-                        return {
-                            starSystem: params.StarSystem,
-                            timestamp,
-                            jump: {
-                                distance: params.JumpDist,
-                                pos: params.StarPos
-                            },
-                            fuel: {
-                                used: params.FuelUsed,
-                                level: params.FuelLevel
-                            }
-                        };
-                    },
-                    values =>
-                        values.reduce((reducer, jump) => {
-                            if (!reducer[jump.starSystem]) {
-                                reducer[jump.starSystem] = {
-                                    starSystem: jump.starSystem,
-                                    jumpCount: 0,
-                                    jumps: []
-                                };
-                            }
-                            reducer[jump.starSystem].jumpCount++;
-                            reducer[jump.starSystem].jumps.push({
-                                timestamp: jump.timestamp,
-                                jump: jump.jump,
-                                fuel: jump.fuel
-                            });
-                            return reducer;
-                        }, {}).data()
-                );
-            } else {
-                result = view.data();
-            }
-            console.log(result.length);
             if (searchFilter) {
                 result = result.slice(0, display);
             } else {
                 result = result.slice((page - 1) * display, page * display);
             }
-            console.log(result.length);
             return {
                 totalRecords,
                 result
             };
-
-            // if (byCount) {
-            //     return result
-            //         .map(({ event, timestamp, params }) => {
-            //             return {
-            //                 starSystem: params.StarSystem,
-            //                 timestamp,
-            //                 jump: {
-            //                     distance: params.JumpDist,
-            //                     pos: params.StarPos
-            //                 },
-            //                 fuel: {
-            //                     used: params.FuelUsed,
-            //                     level: params.FuelLevel
-            //                 }
-            //             };
-            //         })
-            //         .reduce((reducer, jump) => {
-            //             if (!reducer[jump.starSystem]) {
-            //                 reducer[jump.starSystem] = {
-            //                     starSystem: jump.starSystem,
-            //                     jumpCount: 0,
-            //                     jumps: []
-            //                 };
-            //             }
-            //             reducer[jump.starSystem].jumpCount++;
-            //             reducer[jump.starSystem].jumps.push({
-            //                 timestamp: jump.timestamp,
-            //                 jump: jump.jump,
-            //                 fuel: jump.fuel
-            //             });
-            //             return reducer;
-            //         }, {});
-            // } else {
-            //     return result;
-            // }
         });
 
         server.method('getCurrentShip', () => {
@@ -248,10 +245,18 @@ module.exports = {
         });
 
         server.route({
-            path: '/api/all-fsd-jumps',
+            path: '/api/system-journal',
             method: 'get',
             handler: async (request, h) => {
-                return server.methods.getAllFSDJumps(request.query);
+                return server.methods.getSystemJournal(request.query);
+            }
+        });
+
+        server.route({
+            path: '/api/system-list',
+            method: 'get',
+            handler: async (request, h) => {
+                return server.methods.getSystemList(request.query);
             }
         });
 
