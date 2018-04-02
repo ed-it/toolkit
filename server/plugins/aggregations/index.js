@@ -50,7 +50,7 @@ module.exports = {
                             'SupercruiseExit'
                         ].includes(obj.event)
                 ],
-                orderBy || 'timestamp'
+                'timestamp'
             );
 
             let lastKnownLocation = view
@@ -185,7 +185,7 @@ module.exports = {
         server.method('getCurrentShip', () => {
             const view = server.app.journal.addDynamicView('lastLoadout');
             view.applyWhere(obj => obj.event === 'Loadout');
-            view.applySimpleSort(orderBy);
+            view.applySimpleSort('timestamp');
             let lastLoadout = view
                 .data()
                 .reduce(
@@ -206,7 +206,7 @@ module.exports = {
             view.applyWhere(obj =>
                 ['Materials', 'MaterialCollected'].includes(obj.event)
             );
-            view.applySimpleSort(orderBy);
+            view.applySimpleSort('timestamp');
             const result = view.data().reverse();
 
             const materialIndex = result.findIndex(
