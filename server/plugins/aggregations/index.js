@@ -63,9 +63,10 @@ module.exports = {
                             : b
                 );
             if (!lastKnownLocation) {
-                lastKnownLocation = {};
+                return null;
             }
-            return lastKnownLocation;
+            const { event, timestamp, params } = lastKnownLocation;
+            return params;
         });
 
         server.method('getSystemJournal', options => {
@@ -188,6 +189,9 @@ module.exports = {
             view.applySimpleSort('timestamp');
             let lastLoadout = view
                 .data()
+<<<<<<< HEAD
+                .reduce((a, b) => (new Date(a.timestamp).getTime() > new Date(b.timestamp).getTime() ? a : b));
+=======
                 .reduce(
                     (a, b) =>
                         new Date(a.timestamp).getTime() >
@@ -195,10 +199,12 @@ module.exports = {
                             ? a
                             : b
                 );
+>>>>>>> 0c1e67eb75943749a285bd871627a0a5234fbc80
             if (!lastLoadout) {
-                lastLoadout = {};
+                return null;
             }
-            return lastLoadout;
+            const { event, timestamp, params } = lastLoadout;
+            return params;
         });
 
         server.method('getMaterials', () => {
