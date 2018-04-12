@@ -93,17 +93,17 @@ module.exports = {
                 orderBy || 'timestamp'
             );
 
-            let result = view.data();
-            const totalRecords = result.length;
+            let records = view.data();
+            const totalRecords = records.length;
 
             if (searchQuery) {
-                result = result.slice(0, limit);
+                records = records.slice(0, limit);
             } else {
-                result = result.slice((page - 1) * limit, page * limit);
+                records = records.slice((page - 1) * limit, page * limit);
             }
             return {
                 totalRecords,
-                result
+                records
             };
         });
 
@@ -133,7 +133,7 @@ module.exports = {
                 orderBy || 'timestamp'
             );
 
-            result = view.mapReduce(
+            records = view.mapReduce(
                 ({ event, timestamp, params }) => {
                     return {
                         starSystem: params.StarSystem,
@@ -168,17 +168,17 @@ module.exports = {
                         return reducer;
                     }, {})
             );
-            result = Object.keys(result).map(key => result[key]);
-            const totalRecords = result.length;
+            records = Object.keys(records).map(key => records[key]);
+            const totalRecords = records.length;
 
             if (searchQuery) {
-                result = result.slice(0, limit);
+                records = records.slice(0, limit);
             } else {
-                result = result.slice((page - 1) * limit, page * limit);
+                records = records.slice((page - 1) * limit, page * limit);
             }
             return {
                 totalRecords,
-                result
+                records
             };
         });
 
@@ -207,12 +207,12 @@ module.exports = {
                 ['Materials', 'MaterialCollected'].includes(obj.event)
             );
             view.applySimpleSort('timestamp');
-            const result = view.data().reverse();
+            const records = view.data().reverse();
 
-            const materialIndex = result.findIndex(
+            const materialIndex = records.findIndex(
                 item => item.event === 'Materials'
             );
-            const toProcess = result.slice(0, materialIndex + 1);
+            const toProcess = records.slice(0, materialIndex + 1);
 
             const materials = toProcess.find(
                 item => item.event === 'Materials'
@@ -307,9 +307,9 @@ module.exports = {
 
                 const view = server.app.journal.addDynamicView('bounties');
                 view.applyWhere(obj => obj.event === 'Bounty');
-                const results = view.data();
+                let records = view.data();
 
-                const result = results.reduce((reducer, line) => {
+                records = records.reduce((reducer, line) => {
                     const { event, timestamp, params } = line;
                     // We store per day, so we may need to merge figures
                     let timeKey;
@@ -364,9 +364,9 @@ module.exports = {
                 }, {});
 
                 return {
-                    total: results.length,
-                    count: Object.keys(result).length,
-                    result
+                    totalRecords: records.length,
+                    count: Object.keys(records).length,
+                    records
                 };
             }
         });
