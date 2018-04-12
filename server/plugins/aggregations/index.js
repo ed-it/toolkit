@@ -9,13 +9,18 @@ module.exports = {
     register: async (server, options) => {
         server.method('getLastKnownLocation', () => {
             const view = server.app.journal.addDynamicView('lastKnownLocation');
-            view.applyWhere(obj => ['ApproachBody', 'Docked', 'FSDJump', 'SupercruiseEntry', 'SupercruiseExit'].includes(obj.event));
+            view.applyWhere(obj =>
+                ['ApproachBody', 'Docked', 'FSDJump', 'SupercruiseEntry', 'SupercruiseExit'].includes(obj.event)
+            );
             view.applySimpleSort('timestamp');
-            let lastKnownLocation = view.data().reduce((a, b) => (new Date(a.timestamp).getTime() > new Date(b.timestamp).getTime() ? a : b));
+            let lastKnownLocation = view
+                .data()
+                .reduce((a, b) => (new Date(a.timestamp).getTime() > new Date(b.timestamp).getTime() ? a : b));
             if (!lastKnownLocation) {
-                lastKnownLocation = {};
+                return null;
             }
-            return lastKnownLocation;
+            const { event, timestamp, params } = lastKnownLocation;
+            return params;
         });
 
         server.method('getAllFSDJumps', systemByCount => {
@@ -62,11 +67,14 @@ module.exports = {
             const view = server.app.journal.addDynamicView('lastLoadout');
             view.applyWhere(obj => obj.event === 'Loadout');
             view.applySimpleSort('timestamp');
-            let lastLoadout = view.data().reduce((a, b) => (new Date(a.timestamp).getTime() > new Date(b.timestamp).getTime() ? a : b));
+            let lastLoadout = view
+                .data()
+                .reduce((a, b) => (new Date(a.timestamp).getTime() > new Date(b.timestamp).getTime() ? a : b));
             if (!lastLoadout) {
-                lastLoadout = {};
+                return null;
             }
-            return lastLoadout;
+            const { event, timestamp, params } = lastLoadout;
+            return params;
         });
 
         server.method('getMaterials', () => {

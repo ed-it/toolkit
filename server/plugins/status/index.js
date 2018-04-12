@@ -36,10 +36,12 @@ module.exports = {
                         state.params.pips = { sys: sys / 2, eng: eng / 2, wep: wep / 2, raw: [sys, eng, wep] };
                         state.params.status = parseFlags(params.Flags);
                         state.params.position = {
-                            longLat: [params.Longitude || 0, params.Latitude || 0],
+                            latitude: params.Latitude || 0,
+                            longitude: params.Longitude || 0,
                             altitude: params.Altitude || 0,
                             heading: params.Heading || 0
                         };
+                        
                         state.params.currentShip = server.methods.getCurrentShip();
                         state.params.currentLocation = server.methods.getLastKnownLocation();
                     }
