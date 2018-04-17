@@ -189,17 +189,7 @@ module.exports = {
             view.applySimpleSort('timestamp');
             let lastLoadout = view
                 .data()
-<<<<<<< HEAD
                 .reduce((a, b) => (new Date(a.timestamp).getTime() > new Date(b.timestamp).getTime() ? a : b));
-=======
-                .reduce(
-                    (a, b) =>
-                        new Date(a.timestamp).getTime() >
-                        new Date(b.timestamp).getTime()
-                            ? a
-                            : b
-                );
->>>>>>> 0c1e67eb75943749a285bd871627a0a5234fbc80
             if (!lastLoadout) {
                 return null;
             }
