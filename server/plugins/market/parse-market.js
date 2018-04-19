@@ -11,12 +11,9 @@ module.exports = async function(marketFile) {
 
             const categories = result.Items.reduce((reducer, line) => {
                 if (!reducer[line.Category_Localised]) {
-                    reducer[line.Category_Localised] = {
-                        name: line.Category_Localised,
-                        commodities: []
-                    };
+                    reducer[line.Category_Localised] = []
                 }
-                reducer[line.Category_Localised].commodities.push(line);
+                reducer[line.Category_Localised].push(line);
                 return reducer;
             }, {});
             return {
@@ -26,6 +23,7 @@ module.exports = async function(marketFile) {
                     id: result.MarketID,
                     systemName: result.StarSystem,
                     stationName: result.StationName,
+                    categoryKeys: Object.keys(categories),
                     categories
                 }
             };
