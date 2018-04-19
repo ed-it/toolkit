@@ -11,6 +11,27 @@ const { promisify } = require('util');
 const readFileAsync = promisify(fs.readFile);
 const parseFlags = require('./parse-flags');
 
+function valToElm(index, val) {
+    if (index <= Math.ceil(val)) {
+        const check = val - index;
+        if (check >= 1) {
+            return 2;
+        } else if (check > 0 && check < 1) {
+            return 1;
+        }
+        return 0;
+    }
+    return 0;
+}
+
+function generateDisplayPips(sys, eng, wep) {
+    return {
+        sys: [2, 2, 0, 0].map((item, i) => valToElm(i, sys)),
+        eng: [2, 2, 0, 0].map((item, i) => valToElm(i, eng)),
+        wep: [2, 2, 0, 0].map((item, i) => valToElm(i, wep))
+    };
+}
+
 module.exports = {
     name: 'status-reader',
     version: '1.0.0',
@@ -33,7 +54,7 @@ module.exports = {
 
                     if (params && Object.keys(params).length > 0) {
                         const [sys, eng, wep] = params.Pips ? params.Pips : [4, 4, 4];
-                        state.params.pips = { sys: sys / 2, eng: eng / 2, wep: wep / 2, raw: [sys, eng, wep] };
+                        state.params.pips = generateDisplayPips(sys / 2, eng / 2, wep / 2);
                         state.params.status = parseFlags(params.Flags);
                         state.params.position = {
                             latitude: params.Latitude || 0,
@@ -41,7 +62,7 @@ module.exports = {
                             altitude: params.Altitude || 0,
                             heading: params.Heading || 0
                         };
-                        
+
                         state.params.currentShip = server.methods.getCurrentShip();
                         state.params.currentLocation = server.methods.getLastKnownLocation();
                     }
